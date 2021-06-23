@@ -20,8 +20,8 @@ namespace ge {
         
     v2 perp = v2(-size.x, size.y);
     if(angle){
-      size = size.rotated(angle);
-      perp = perp.rotated(angle);
+      size = size.Rotated(angle);
+      perp = perp.Rotated(angle);
     }
 
     glTexCoord2f(tpos.x, 	tpos.y);                      glVertex3f(pos.x - size.x, pos.y + size.y, pos.z); 
@@ -104,8 +104,8 @@ namespace ge {
         
         v2 perp = v2(-size.x, size.y);
         if(angle){
-          size = size.rotated(angle);
-          perp = perp.rotated(angle);
+          size = size.Rotated(angle);
+          perp = perp.Rotated(angle);
           // perp = v2(-size.x, size.y);
         }
 

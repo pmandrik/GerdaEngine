@@ -29,8 +29,8 @@ namespace ge {
     // A = dV.x/x_1 - B*x_2/x_1 = dV.y/y_1 - B*y_2/y_1
     // (x_1*y_2-y_1*x_2)*B = x_1*dV.y - y_1*dV.x
     v2 dV    = point - box_center;
-    v2 sizer = v2(box_size.x, 0).rotated(angle); // x_1
-    v2 perpr = v2(0, box_size.y).rotated(angle); // x_2
+    v2 sizer = v2(box_size.x, 0).Rotated(angle); // x_1
+    v2 perpr = v2(0, box_size.y).Rotated(angle); // x_2
 
     float B = (sizer.x * dV.y - sizer.y * dV.x) / (sizer.x * perpr.y - sizer.y * perpr.x);
     if(abs(B) > 1) return false;

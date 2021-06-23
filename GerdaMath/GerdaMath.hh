@@ -9,7 +9,6 @@ namespace ge {
 };
 
 #include "GerdaMathConst.hh"
-#include "GerdaVector.hh"
 #include "GerdaRandom.hh"
 #include "GerdaAlgo.hh"
 

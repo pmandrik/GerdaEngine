@@ -46,8 +46,8 @@ namespace ge {
       }
 
       void SetTarget(v2 target){
-        to.set(target);
-        from.set(target);
+        to.Set(target);
+        from.Set(target);
       }
 
       void SetTarget(v2 target, float z, v2 norm){
@@ -87,7 +87,7 @@ namespace ge {
       }
 
       float GetPhi(){
-        return normal.angle();
+        return normal.Angle();
       }
 
       void Print(){
