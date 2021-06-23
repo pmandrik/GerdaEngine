@@ -16,16 +16,20 @@
 #include <list>
 #include <string>
 #include <random>
-
 #include <math.h>
 #include <stdlib.h>
 #include <ctime>
-
 #include <functional>
+using namespace std;
+
+// ======= PMANDRIK_LIBRARY ============================================================
+#include "pmlib_v2d.hh"
+#include "pmlib_msg.hh"
+using namespace pm;
 
 // ======= EXTERNAL ====================================================================
 #include "tinyxml2.h"
-// using namespace tinyxml2;
+using namespace tinyxml2;
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -121,7 +125,7 @@ namespace ge {
     if(sys::screenshoot_timer->itime) sys::screenshoot_timer->Tick();
 
     SDL_GL_SwapWindow(sys::window);
-    glClearColor(sys::fb_def_color.x,sys::fb_def_color.y,sys::fb_def_color.z,1);
+    glClearColor(sys::fb_def_color.r,sys::fb_def_color.g,sys::fb_def_color.b,sys::fb_def_color.a);
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
 

@@ -306,12 +306,12 @@ namespace ge {
           }
         }
         // some regular event - this should be configuradable
-        hor = digsign( Holded(key::D) + Holded(key::RIGHT) - Holded(key::A) - Holded(key::LEFT));
-        ver = digsign( Holded(key::W) + Holded(key::UP) - Holded(key::S) - Holded(key::DOWN));
+        hor = check_sign( Holded(key::D) + Holded(key::RIGHT) - Holded(key::A) - Holded(key::LEFT));
+        ver = check_sign( Holded(key::W) + Holded(key::UP) - Holded(key::S) - Holded(key::DOWN));
         actz = Pressed(key::Z) + Pressed(key::K) + Pressed(key::RETURN) + Pressed(key::SPACE);
         actx = Pressed(key::X) + Pressed(key::L);
-        hor_pressed = digsign( Pressed(key::D) + Pressed(key::RIGHT) - Pressed(key::A) - Pressed(key::LEFT)  );
-        ver_pressed = digsign( Pressed(key::W) + Pressed(key::UP) - Pressed(key::S) - Pressed(key::DOWN));
+        hor_pressed = check_sign( Pressed(key::D) + Pressed(key::RIGHT) - Pressed(key::A) - Pressed(key::LEFT)  );
+        ver_pressed = check_sign( Pressed(key::W) + Pressed(key::UP) - Pressed(key::S) - Pressed(key::DOWN));
         exit = Pressed(key::ESCAPE);
         screenshoot = Holded(key::KP_0);
       }

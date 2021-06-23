@@ -14,6 +14,7 @@ namespace ge {
   namespace sys{
     // ======= SYSTEM CFG ====================================================================
     // SCREEN
+    const bool FULLSCREEN = false;
     const int fps = 60;
     const int WW = 800; const int WH = 600;
     // const int WW = 2*640; const int WH = 2*480;
@@ -45,6 +46,9 @@ namespace ge {
       msg(" FBW, FBW2, FBH, FBH2", FBW, FBW2, FBH, FBH2);
     }
 
+    // HLT related
+    v2 hide_position = v2(999999, 999999);
+
     // OTHER
     int def_verbose_lvl = verbose::VERBOSE;
 
@@ -52,7 +56,7 @@ namespace ge {
     SDL_Window * window;
     SDL_GLContext glcontext;
 
-    v2 fb_def_color;
+    rgb fb_def_color;
     FrameBuffer * screen_final_frame; // Double buffer?
 
     Clocker     * clocker;

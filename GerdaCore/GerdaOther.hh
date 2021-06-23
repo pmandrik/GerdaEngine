@@ -72,8 +72,6 @@ namespace ge {
   }
 
   // ======= screenshoot ====================================================================
-  
-  
   string get_screnshoot_name(){
     time_t t = time(0);
     struct tm * now = localtime( & t );

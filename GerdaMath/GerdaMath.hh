@@ -3,6 +3,11 @@
 #ifndef GerdaMath_H
 #define GerdaMath_H 1
 
+namespace ge {
+  template <class T> int check_sign(T a){ if(a>0.){return 1;} if(a<0.){return -1;} return 0; }
+  template <class T> bool check_in(T a, T min, T max){ return (a<min or a>max) ? false : true;}
+};
+
 #include "GerdaMathConst.hh"
 #include "GerdaVector.hh"
 #include "GerdaRandom.hh"

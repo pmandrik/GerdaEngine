@@ -1,7 +1,8 @@
 # GerdaEngine
 
 #### critical
-* GerdaInputDev.hh - start/end keyboard codes system depended 
+* GerdaInputDev.hh - start/end keyboard codes system depended
+* what is phylosofical difference between sprite and object 
 
 #### relax
 * GerdaInput.hh - add safety to loading of tile map
