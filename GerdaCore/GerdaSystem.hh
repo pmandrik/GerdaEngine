@@ -71,6 +71,20 @@ namespace ge {
     string * screnshoot_prefix = new string("gs_");
 
     Camera * camera;
+
+    // ======= SYSTEMS CONSTANTS ====================================================================
+    // ======= LANGUAGE SUPPORT 
+    // ENG
+    const string ABC_en = string("QWERTYUIOPLKJHGFDSAZXCVBNM");
+    const string abc_en = string("qwertyuiopasdfghjklzxcvbnm");
+
+    // RUS
+    const string ABC_ru = string("ЙЦУКЕНГШЩЗХЪЭЖДЛОРПАВЫФЯЧСМИТЬБЮЁ");
+    const string abc_ru = string("йцукенгшщзхъфывапролджэячсмитьбюё");
+
+    // SYMBOLS
+    const string abc_numbers = string("1234567890");
+    const string abc_symbols = string(" !@#$%^*()_+-=[];\',./{}:\"<>?");
   }
   
 };

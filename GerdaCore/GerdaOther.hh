@@ -71,6 +71,43 @@ namespace ge {
     return s;
   }
 
+  // utf8 & strings ====================================================================
+  string utf8_to_string(const uint32_t & code){
+    string result;
+    utf8::append(code, back_inserter(result));
+    return result;
+  }
+
+  string utf8_to_string(const vector<uint32_t> & str){
+    string result;
+    utf8::utf32to8(result.begin(), result.end(), back_inserter(result));
+    return result;
+  }
+
+  vector<uint32_t> string_to_utf8(const string & str){
+    auto beg_it = str.begin();
+    auto end_it = utf8::find_invalid(beg_it, str.end());
+    int length = utf8::distance(beg_it, end_it);
+    vector<uint32_t> answer;
+    for(int i = 0; i < length; i++)
+      answer.push_back( utf8::next(beg_it, end_it) );
+    return answer;
+  }
+
+  vector<string> string_to_utf8_string(const string & str){
+    const vector<uint32_t> & codes = string_to_utf8(str);
+    vector<string> answer;
+    for(auto code : codes) answer.push_back( to_string(code) );
+    return answer;
+  }
+
+  string char_to_utf8_string(const char symbol){
+    string nstring = " ";
+    nstring[0] = symbol;
+    const vector<uint32_t> & codes = string_to_utf8(nstring);
+    return to_string(codes.at(0));
+  }
+
   // ======= screenshoot ====================================================================
   string get_screnshoot_name(){
     time_t t = time(0);

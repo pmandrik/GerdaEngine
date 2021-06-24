@@ -7,7 +7,7 @@
 #include "SDL.h"
 #include "SDL_opengl.h"
 
-// ======= OPENGL ====================================================================
+// ======= OPENGL =================================================================
 
 // ======= STL ====================================================================
 #include <iostream>
@@ -37,10 +37,13 @@ using namespace tinyxml2;
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#include "utf8.h"
+
 // ======= GERDA ====================================================================
 #include "GerdaMath.hh"
 #include "GerdaCore.hh"
 #include "GerdaOpenGL.hh"
+#include "GerdaHLT.hh"
 
 namespace ge {
 
