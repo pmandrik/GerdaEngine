@@ -6,6 +6,8 @@ namespace ge {
 
 class ImageLine {
   public:
+  /// Image mean part of Texture represented as TexTile - coordinated and sizes of rectangle
+  /// ImageLine - series of Texture parts
   ImageLine() : empty(true) { Reset(); }
   ~ImageLine(){}
 
@@ -55,6 +57,8 @@ class ImageLine {
 
 class Sprite {
   public:
+  /// Sprite is used to control and show single Image as well as ImageLine
+  /// pos, size, angle and if it is flip
   Sprite(Sprite * sprite){
     active_state = "";
 
@@ -88,14 +92,29 @@ class Sprite {
     drawer       = nullptr;
     draw_id = -1;
   }
+
+  Sprite( TiledMapObject* obj, TexTile * tile ) {
+    flip  = obj->flip;
+    angle = obj->angle;
+    size  = obj->size * 0.5;
+    pos   = obj->pos;
+    pos.z = 0.5 + obj->level * 0.1;
+    active_image = tile;
+    drawer  = nullptr;
+    draw_id = -1;
+  }
+
   ~Sprite(){
     if(drawer) drawer->Remove(draw_id);
   }
 
   // DRAWER PART
   void SendChanges(){
-    if(not drawer) return;
     drawer->Change(draw_id, pos, size, active_image->tpos, active_image->tsize, angle, flip);
+  }
+
+  void SendChangesFast(){
+    drawer->ChangeFast(draw_id, pos, size);
   }
 
   void SetDrawer(ArrayQuadsDrawer * dr){

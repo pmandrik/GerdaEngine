@@ -10,6 +10,7 @@ namespace ge {
     Timer(){};
     Timer(int max_time) : mtime(max_time) { dtime = 1./float(mtime); Reset(); }
     inline void Set(int time){itime = time; ftime = itime * dtime;}
+    inline void End(){Set(mtime);}
     inline void Reset(){ Set(0); }
     inline void ResetBack(){ Set(mtime-1); }
     bool Tick(int val=1){ 

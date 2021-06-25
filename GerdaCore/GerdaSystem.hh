@@ -4,7 +4,7 @@
 
 namespace ge {
 
-  class EventParser;
+  class EventSystem;
   class Clocker;
   class Camera;
   class FrameBuffer;
@@ -62,7 +62,7 @@ namespace ge {
     Clocker     * clocker;
     Mouse       * mouse;
     Keyboard    * keyboard;
-    EventParser * event_parser;
+    EventSystem * event_sys;
 
     int     screenshoot_counter = 0;
     int     screenshoot_sec = 0;

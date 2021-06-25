@@ -5,5 +5,6 @@
 #include  "GerdaObject.hh"
 #include  "GerdaSprite.hh"
 #include  "GerdaDialogs.hh"
+#include  "GerdaMap.hh"
 
 #endif

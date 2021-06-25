@@ -25,6 +25,7 @@ using namespace std;
 // ======= PMANDRIK_LIBRARY ============================================================
 #include "pmlib_v2d.hh"
 #include "pmlib_msg.hh"
+#include "pmlib_2d_physics.c"
 using namespace pm;
 
 // ======= EXTERNAL ====================================================================
@@ -102,7 +103,7 @@ namespace ge {
     sys::clocker      = new Clocker(sys::fps);
     sys::mouse        = new Mouse();
     sys::keyboard     = new Keyboard();
-    sys::event_parser = new EventParser();
+    sys::event_sys    = new EventSystem();
 
     sys::screenshoot_counter     = 100;
     sys::screenshoot_image       = new Image(sys::WW, sys::WH);
@@ -139,7 +140,7 @@ namespace ge {
     sys::mouse->Tick();
 
     // parse all SDL events: mouse
-    sys::event_parser->Tick();
+    sys::event_sys->Tick();
 
     // get keyboard state after all SDL events was parsed
     sys::keyboard->Tick();
