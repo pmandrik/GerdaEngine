@@ -2,7 +2,6 @@
 #ifndef GerdaHLT_H
 #define GerdaHLT_H 1
 
-#include  "GerdaObject.hh"
 #include  "GerdaSprite.hh"
 #include  "GerdaDialogs.hh"
 #include  "GerdaMap.hh"

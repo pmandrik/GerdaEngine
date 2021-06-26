@@ -1,5 +1,9 @@
 # GerdaEngine
 
+Tips:  
+* doxygen Doxyfile
+* mkdir build; cd build; cmake ..
+
 #### critical
 * GerdaInputDev.hh - start/end keyboard codes system depended
 * what is phylosofical difference between sprite and object 

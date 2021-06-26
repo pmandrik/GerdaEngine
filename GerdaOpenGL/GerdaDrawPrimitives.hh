@@ -5,29 +5,34 @@
 namespace ge {
 
   // ======= simple draw functions ====================================================================
-  void draw_quad(const v2 & pos, const v2 & size){
+  void draw_quad(const v2 & pos, v2 size, const float & angle){
     glBegin(GL_QUADS);
-	  glVertex3f(pos.x, pos.y, pos.z);
-	  glVertex3f(pos.x, pos.y + size.y, pos.z);
-	  glVertex3f(pos.x + size.x, pos.y + size.y, pos.z);
-	  glVertex3f(pos.x + size.x, pos.y, pos.z);
+
+    v2 perp = v2(-size.x, size.y);
+    size = size.Rotated(angle);
+    perp = perp.Rotated(angle);
+
+    glVertex3f(pos.x - size.x, pos.y + size.y, pos.z); 
+	  glVertex3f(pos.x - perp.x, pos.y + perp.y, pos.z);
+	  glVertex3f(pos.x + size.x, pos.y - size.y, pos.z);
+	  glVertex3f(pos.x + perp.x, pos.y - perp.y, pos.z);
 	  glEnd();
   }
 
   void draw_texture_quad(const v2 & pos, v2 size, const v2 & tpos, const v2 & tsize, const float & angle, const v2 & flip){
+    glBegin(GL_QUADS);
     if(flip.x) size.x *= -1;
     if(flip.y) size.y *= -1;
         
     v2 perp = v2(-size.x, size.y);
-    if(angle){
-      size = size.Rotated(angle);
-      perp = perp.Rotated(angle);
-    }
+    size = size.Rotated(angle);
+    perp = perp.Rotated(angle);
 
     glTexCoord2f(tpos.x, 	tpos.y);                      glVertex3f(pos.x - size.x, pos.y + size.y, pos.z); 
 	  glTexCoord2f(tpos.x + tsize.x, 	tpos.y);            glVertex3f(pos.x - perp.x, pos.y + perp.y, pos.z);
 	  glTexCoord2f(tpos.x + tsize.x, 	tpos.y + tsize.y);  glVertex3f(pos.x + size.x, pos.y - size.y, pos.z);
 	  glTexCoord2f(tpos.x, 	tpos.y + tsize.y);            glVertex3f(pos.x + perp.x, pos.y - perp.y, pos.z);
+	  glEnd();
   }
 
   // ======= draw array of quads ====================================================================

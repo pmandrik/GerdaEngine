@@ -53,6 +53,7 @@ namespace ge {
     SDL_Init(SDL_INIT_VIDEO);
     msg("SDL_GetPlatform = ", SDL_GetPlatform());
     msg("SDL_GetNumVideoDisplays = ", SDL_GetNumVideoDisplays());
+    msg("init_sdl() ... done");
   }
 
   bool init_sdl_screen(){
@@ -74,7 +75,7 @@ namespace ge {
       sys::window = SDL_CreateWindow("GerdaWindow", 0, 0, sys::SW, sys::SH, SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN);
     }
 
-    msg("init_sdl() ... done");
+    msg("init_sdl_screen() ... done");
     return true;
   }
 
@@ -118,7 +119,7 @@ namespace ge {
     return true;
   }
 
-  bool tick_gerda(){
+  void tick_gerda(){
     if(sys::keyboard->screenshoot and not sys::screenshoot_timer->itime){
       glReadPixels(0, 0, sys::WW, sys::WH, GL_RGBA, GL_UNSIGNED_BYTE, sys::screenshoot_image->data);
       // sys::screenshoot_image->Mirrow();
@@ -145,10 +146,12 @@ namespace ge {
     // get keyboard state after all SDL events was parsed
     sys::keyboard->Tick();
 
-    if(sys::keyboard->exit) return false; // FIXME menu, other
-    return true;
-
     // after this call apply in main loop draw functions
+  }
+
+  bool check_exit(){
+    if(sys::keyboard->exit) return true; // FIXME menu, other
+    return false;
   }
 
 }
