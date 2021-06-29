@@ -209,6 +209,10 @@ namespace ge {
       if(sys::keyboard->Pressed(key::K_8)) { shader->vars[7] += dvar; msg(shader->vars[7]); }
       if(sys::keyboard->Pressed(key::K_9)) { shader->vars[8] += dvar; msg(shader->vars[8]); }
       if(sys::keyboard->Pressed(key::K_0)) { shader->ResetVars(); }
+      if(sys::keyboard->Pressed(key::SPACE)){
+        for(int i = 0; i < 9; i++)
+          msg("shader->vars[", i, "] = ", shader->vars[i], ";");
+      };
       shader_prev = shader;
     }
     int shaders_iter, dir;

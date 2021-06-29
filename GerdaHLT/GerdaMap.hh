@@ -32,20 +32,30 @@ namespace ge {
       }
   };
 
-  class TiledPhysicObject;
-
   /// basic 
-  class TiledPhysic : public BaseClass, public pmPhysic {
-    // const int & N_objects, float * object_positions, float * object_speeds, 
-    // int * object_tiles, float * object_sizes_xy, float * object_angles, bool * object_x_solids,
-    // const int & N_bullets, float * bullet_positions, int * bullet_tiles, 
-    // std::vector< std::pair<int, int> > & interacted_object_x_object_pairs, std::vector< std::pair<int, int> > & interacted_bullet_x_object_pairs
-
-    /// N_objects + object_positions + object_speeds + object_sizes_xy + object_angles -> object_tiles, object_x_solids, interacted_object_x_object_pairs
-    /// N_bullets + bullet_positions -> bullet_tiles, interacted_bullet_x_object_pairs
+  class TiledPhysic : public BaseClass, public pmPhysicContainer {
+    public:
+      TiledPhysic(TiledMap * map){
+        SetMap( map );
+      }
+      
+      void SetMap(TiledMap * map_){
+        pmPhysicContainer::msize_layers = map_->msize_layers;
+        pm_physic.SetMap( (pmTiledMap*)map_ );
+        map = map_;
+      }
+    
+      void Tick(){
+        pm_physic.Tick( objects, particles, interacted_object_x_object_pairs, interacted_bullet_x_object_pairs);
+      }
+      
+      std::vector< std::pair<int, int> > interacted_object_x_object_pairs;
+      std::vector< std::pair<int, int> > interacted_bullet_x_object_pairs;
+      TiledMap * map;
+      pmPhysic pm_physic;
   };
+  
 
-  class 
 };
 
 #endif

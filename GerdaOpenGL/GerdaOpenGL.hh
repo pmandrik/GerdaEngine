@@ -58,8 +58,8 @@ namespace ge {
 #include "GerdaDrawPrimitives.hh"
 #include "GerdaCamera.hh"
 #include "GerdaTexture.hh"
-#include "GerdaFrameBuffer.hh"
 #include "GerdaShader.hh"
+#include "GerdaFrameBuffer.hh"
 
 #endif
 

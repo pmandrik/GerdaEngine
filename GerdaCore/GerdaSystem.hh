@@ -14,18 +14,23 @@ namespace ge {
   namespace sys{
     // ======= SYSTEM CFG ====================================================================
     // SCREEN
-    const bool FULLSCREEN = false;
-    const int fps = 60;
-    const int WW = 800; const int WH = 600;
-    // const int WW = 2*640; const int WH = 2*480;
-    const int WW2 = WW / 2;
-    const int WH2 = WH / 2;
-    const v2 WV  = v2(WW,  WH );
-    const v2 WV2 = v2(WW2, WH2);
-    const float z_buffer = 100;
+    bool FULLSCREEN = false;
+    int fps = 60;
+    float z_buffer = 100;
+    int WW = 800; int WH = 600;
+    int WW2 = WW / 2; int WH2 = WH / 2;
+    v2 WV  = v2(WW,  WH ); v2 WV2 = v2(WW2, WH2);   
+    void set_windows_size(int ww, int wh){
+      WW = ww;
+      WH = wh;
+      WW2 = WW / 2;
+      WH2 = WH / 2;
+      WV  = v2(WW,  WH );
+    }
 
     int SW, SW2, SH, SH2;
     int FBW, FBW2, FBH, FBH2;
+    v2 FBV, FBV2;   
     v2 SV, SV2;
     float STW_scale;
     void set_screen_size(int sw, int sh){
@@ -41,6 +46,8 @@ namespace ge {
       FBH  = WH * STW_scale;
       FBW2 = FBW / 2;
       FBH2 = FBH / 2;
+      FBV = v2(FBW, FBH);
+      FBV2 = v2(FBW2, FBH2);
 
       msg(SW, SW2, SH, SH2);
       msg(" FBW, FBW2, FBH, FBH2", FBW, FBW2, FBH, FBH2);

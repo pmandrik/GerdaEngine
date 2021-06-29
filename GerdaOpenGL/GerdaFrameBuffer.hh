@@ -65,9 +65,11 @@ namespace ge {
         glBindTexture(GL_TEXTURE_2D, 0);
       }
 
-      void DrawOnWindow(){
-        /// 2) on the whole window, than sizes are taken from sys::WW, sys::WH
-        Draw(-sys::WW2, -sys::WH2, sys::WW2, sys::WH2);
+      void DrawOnWindow(const bool & mirror_x=false, const bool & mirror_y=false){
+        if(mirror_x and mirror_y) Draw(sys::WW2, sys::WH2, -sys::WW2, -sys::WH2);
+        else if(mirror_x) Draw(sys::WW2, -sys::WH2, -sys::WW2, sys::WH2);
+        else if(mirror_y) Draw(-sys::WW2, sys::WH2, sys::WW2, -sys::WH2);
+        else Draw(-sys::WW2, -sys::WH2, sys::WW2, sys::WH2);
       }
 
       GLuint fbo_id, texture_id, depth_id;
@@ -100,7 +102,22 @@ namespace ge {
     void UntargetActive(){ active->Untarget(); }
     void ClearActive(){    active->Clear();    }
     void DrawActive(){     active->Draw();     }
-    void DrawOnWindowActive(){ active->DrawOnWindow();     }
+    void DrawActiveOnWindow(const bool & mirror_x=false, const bool & mirror_y=false){ active->DrawOnWindow(mirror_x, mirror_y);     }
+    void DrawTexture(Texture * text){
+      TargetActive();
+      text->Draw(v2(), sys::FBV2);
+      UntargetActive();
+    }
+    void ApplyShader(FrameShader * shader, const int & N_times){
+      shader->Bind();
+      shader->UpdateUniforms();
+      for(int i = 0; i < N_times; i++){
+        DrawBackOnActive();
+        Flip();
+      }
+      Flip();
+      shader->Unbind();
+    }
 
     FrameBuffer *active, *back;
   };
