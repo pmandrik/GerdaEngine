@@ -179,6 +179,18 @@ namespace ge {
     int var_number, text_number;
   };
 
+  FrameShader * load_frame_shader(string name, string path_vert, string path_frag, int n_vars, int n_texts = 1, float stime = 0.){
+    FrameShader* shader = new FrameShader(n_vars, n_texts, stime);
+    string vert_txt = read_text_files( path_vert );
+    string frag_txt = read_text_files( path_frag );
+    msg( frag_txt );
+    shader->LoadFromString(GL_VERTEX_SHADER, vert_txt.c_str());
+    shader->LoadFromString(GL_FRAGMENT_SHADER, frag_txt.c_str());
+    shader->CreateProgram();
+    shader->shader_name = name;
+    return shader;
+  }
+
   // class to update shaders variables from keyboard
   class StdinShader{
     public:

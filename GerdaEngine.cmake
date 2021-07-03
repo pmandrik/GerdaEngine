@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 message(STATUS "GerdaEngine.cmake loaded from ${GE_PATH}")
 
 #-- OPENGL
-# find_package(OpenGL)
+find_package(OpenGL)
 
 #-- SDL
 include_directories(/home/me/my/gd/rstmn/engine_progress/SDL2-2.0.5/include/)

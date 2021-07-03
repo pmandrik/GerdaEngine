@@ -243,10 +243,60 @@ namespace ge {
         }
       }
 
+      void PrintPNG(const int & min_x, const int & min_y, const int & max_x, const int & max_y){
+        int hh = min(h,min_y), ww = min(w, min_x);
+        int hhh = min(h,max_y), www = min(w, max_x);
+        for(int y = hh; y < hhh; y++)
+          for(int x = ww; x < www; x++)
+            msg(x,y, int(((unsigned char*)data)[y*comp*w + x*comp + 0]), int(((unsigned char*)data)[y*comp*w + x*comp + 1]), int(((unsigned char*)data)[y*comp*w + x*comp + 2]), int(((unsigned char*)data)[y*comp*w + x*comp + 3]));
+      }
+
       int w,h,comp,type,format;
       void *data;
       string name;
   };
+
+  // some slow functon to change Image content
+  void image_fill_random_monochrome(Image * img, int dmin, int dmax){
+    /// change no-zero-alpha RGB pixel value to random(dmin, dmax), dmin in [0,255], dmax in [0,255], slow
+    int h = img->h, w = img->w, comp = img->comp;
+    dmin = min(max(dmin, 0), 255);
+    dmax = min(max(dmin, 0), 255);
+    for(int y = 0; y < h; y++){
+      for(int x = 0; x < w; x++){
+        if( int(((unsigned char*)img->data)[y*comp*w + x*comp + 3]) == 0) continue;
+        unsigned char val = randint(dmin, dmax);
+        ((unsigned char*)img->data)[y*comp*w + x*comp + 0] = val;
+        ((unsigned char*)img->data)[y*comp*w + x*comp + 1] = val;
+        ((unsigned char*)img->data)[y*comp*w + x*comp + 2] = val;
+      }
+    }
+  }
+
+  bool check_if_alpha_pixels_around(Image * img, int x, int y){
+    /// check points (x-1,y),(x+1,y),(x,y-1),(x,y+1) around (x,y) for pixels with alpha!=0, unsafe
+    int w = img->w, comp = img->comp;
+    for(int xx = x-1; xx <= x+1; xx+=2)
+      if( int(((unsigned char*)img->data)[y*comp*w + xx*comp + 3]) != 0) return true;
+    for(int yy = y-1; yy <= y+1; yy+=2)
+      if(((unsigned char*)img->data)[yy*comp*w + x*comp + 3] != 0) return true;
+    return false;
+  }
+
+  void image_set_black_edges(Image * img){
+    /// turn (r,g,b,0) pixels to (0,0,0,255) if check_if_alpha_pixels_around()==true
+    int h = img->h, w = img->w, comp = img->comp;
+    for(int y = 1; y < h-1; y++){
+      for(int x = 1; x < w-1; x++){
+        if( int(((unsigned char*)img->data)[y*comp*w + x*comp + 3]) != 0) continue;
+        if( not check_if_alpha_pixels_around(img, x, y) ) continue;
+        ((unsigned char*)img->data)[y*comp*w + x*comp + 0] = (unsigned char)0;
+        ((unsigned char*)img->data)[y*comp*w + x*comp + 1] = (unsigned char)0;
+        ((unsigned char*)img->data)[y*comp*w + x*comp + 2] = (unsigned char)0;
+        ((unsigned char*)img->data)[y*comp*w + x*comp + 3] = (unsigned char)255;
+      }
+    }
+  }
 
   // ======= Functions for reading text files ====================================================================
   string read_text_files(const string & path){

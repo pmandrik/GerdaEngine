@@ -46,6 +46,8 @@ namespace ge {
       }
     
       void Tick(){
+        interacted_object_x_object_pairs.clear();
+        interacted_bullet_x_object_pairs.clear();
         pm_physic.Tick( objects, particles, interacted_object_x_object_pairs, interacted_bullet_x_object_pairs);
       }
       

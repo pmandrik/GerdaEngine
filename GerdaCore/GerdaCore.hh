@@ -3,6 +3,8 @@
 #ifndef GERDA_CORE_HH 
 #define GERDA_CORE_HH 1
 
+#define __PFN__ __PRETTY_FUNCTION__
+
 #include <GerdaInputDev.hh>
 #include <GerdaSystem.hh>
 #include <GerdaOther.hh>
