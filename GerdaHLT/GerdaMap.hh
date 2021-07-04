@@ -6,7 +6,7 @@
 namespace ge {
   
   /// pmTiledMap work with map of integer of sizes: map_size_x * map_size_y * map_size_layers  
-  /// map_size_layers mean multiple layers of tiles with different int type 
+  /// map_size_layers mean multiple layers of tiles with different int type  
   /// value 0 of 0 layer is reserved for Solid tiles  
   class TiledMap : public BaseClass, public pmTiledMap {
     // pmTiledMap:
@@ -18,6 +18,7 @@ namespace ge {
       }
 
       void DrawSlow(int layer=0, int mask=0, float z_pos = 0.){
+        /// defaut function for drawing map using GL_QUADS, slow
         glBegin(GL_QUADS);
         for(int y = 0; y < msize_y; y++){
           for(int x = 0; x < msize_x; x++){
@@ -32,7 +33,33 @@ namespace ge {
       }
   };
 
-  /// basic 
+  class TiledMapDrawer() : public BaseClass {
+    /// draw map using ArrayQuadsDrawer and Sprites
+    TiledMapDrawer(TiledMap * map_, ArrayQuadsDrawer * drawer_){
+      map = map_;
+      drawer = drawer_;
+    }
+
+    void Tick(){
+      /// update animated tiles
+      for(auto iter : animated_tiles){
+        iter.second->Get();
+        iter.second->SendChanges();
+      }
+    }
+
+    void Draw(){
+      drawer->Draw();
+    }
+
+    vector <Sprite*> tiles;
+    unordered_map<pair<int, int>, Sprite*> animated_tiles;
+  
+    TiledMap * map;
+    ArrayQuadsDrawer * drawer;
+  };
+
+  // basic 
   class TiledPhysic : public BaseClass, public pmPhysicContainer {
     public:
       TiledPhysic(TiledMap * map){
