@@ -14,9 +14,11 @@ namespace ge {
   namespace sys{
     // ======= SYSTEM CFG ====================================================================
     // SCREEN
+    float z_buffer = 100;
+    float z_def_value = 0;
+
     bool FULLSCREEN = false;
     int fps = 60;
-    float z_buffer = 100;
     int WW = 800; int WH = 600;
     int WW2 = WW / 2; int WH2 = WH / 2;
     v2 WV  = v2(WW,  WH ); v2 WV2 = v2(WW2, WH2);   

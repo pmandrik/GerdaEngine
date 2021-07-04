@@ -55,10 +55,11 @@ class ImageLine {
   bool get_end, empty;
 };
 
-class Sprite {
+class Sprite : public DrawableQuad {
   public:
   /// Sprite is used to control and show single Image as well as ImageLine
   /// pos, size, angle and if it is flip
+  /// Sprites are Quads or 4 point vertexes
   Sprite(Sprite * sprite){
     active_state = "";
 
@@ -67,7 +68,7 @@ class Sprite {
     size   = sprite->size;
     pos    = sprite->pos;
     pos.z  = sprite->pos.z;
-    active_image = nullptr;
+    ttile = nullptr;
     drawer       = nullptr;
     draw_id      = -1;
     if(sprite->drawer) SetDrawer(sprite->drawer);
@@ -75,7 +76,7 @@ class Sprite {
     states = sprite->states;
     if(states.size()){
       active_line = &(states.begin()->second);
-      active_image = active_line->Get();
+      ttile = active_line->Get();
     }
     else active_line = nullptr;
   }
@@ -88,7 +89,7 @@ class Sprite {
     size   = v2();
     pos    = v2();
     pos.z  = 1 * 0.1;
-    active_image = nullptr;
+    ttile = nullptr;
     drawer       = nullptr;
     draw_id = -1;
   }
@@ -99,7 +100,7 @@ class Sprite {
     size  = obj->size * 0.5;
     pos   = obj->pos;
     pos.z = 0.5 + obj->level * 0.1;
-    active_image = tile;
+    ttile = tile;
     drawer  = nullptr;
     draw_id = -1;
   }
@@ -108,50 +109,33 @@ class Sprite {
     if(drawer) drawer->Remove(draw_id);
   }
 
-  // DRAWER PART
-  void SendChanges(){
-    drawer->Change(draw_id, pos, size, active_image->tpos, active_image->tsize, angle, flip);
-  }
-
-  void SendChangesFast(){
-    drawer->ChangeFast(draw_id, pos, size);
-  }
-
-  void SetDrawer(ArrayQuadsDrawer * dr){
-    if(drawer) drawer->Remove(draw_id);
-    drawer  = dr;
-    draw_id = drawer->AddDummy();
-    if(active_image != nullptr) SendChanges();
-  }
-
-
   // IMAGE PART
   void AddLine(const char * str, ImageLine * line){
     states[string(str)] = *line;
     if( not active_state.size() ){ 
       active_state = string(str);
       active_line = & states.find(string(str))->second;
-      active_image = active_line->Get();
+      ttile = active_line->Get();
       active_line->Reset();
     }
   }
 
   TexTile * Get(string state="", bool circle = true, bool reverse = false){
     if((active_state == state or state == "") and active_line){
-      if( circle or not active_line->get_end) active_image = active_line->Get(reverse);
+      if( circle or not active_line->get_end) ttile = active_line->Get(reverse);
     }
     else{
       if(active_line) active_line->Reset();
       auto find = states.find(state);
       if(find == states.end()){
         msg("Sprite : get() : bad state name ", state);
-        return active_image;
+        return ttile;
       }
       active_line = & find->second;
       active_state = state;
-      active_image = active_line->Get(reverse);
+      ttile = active_line->Get(reverse);
     }
-    return active_image;
+    return ttile;
   }
 
   bool HasState(string state){
@@ -168,21 +152,13 @@ class Sprite {
   void SetImageIndex(const int  & index){
     if(not active_line) return;
     if(index < 0 or index > active_line->images.size()) return;
-    active_image = active_line->images.at(index);
+    ttile = active_line->images.at(index);
   }
   
-  string active_state;
   ImageLine * active_line;
-  TexTile * active_image;
-
+  TexTile * ttile;
+  string active_state;
   map <string, ImageLine> states;
-
-  int draw_id;
-  float angle;
-  v2 pos, size, flip;
-  ArrayQuadsDrawer * drawer;
-
-  map<string, string> custom_info;
 };
 
 
