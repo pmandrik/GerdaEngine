@@ -12,21 +12,21 @@ namespace ge {
     /// TickPhysic calculate speed, pos = pos + speed
     public:
       Particle(ArrayQuadsDrawer * drawer){
-        obj.Hide();
-        obj.SetDrawer( drawer );
+        sprite.Hide();
+        sprite.SetDrawer( drawer );
       }
 
       void Hide(){
-        lifetime = Timer( 0 );
+        lifetimer = Timer( 0 );
       }
 
-      virtual TickPhysic(){
+      virtual void TickPhysic(){
         speed = speed*speed_multiplicator + accel;
         sprite.pos += speed;
       }
 
       virtual void Init(const int & time_, const v2 & pos_, const v2 & speed_, TexTile * ttile_){
-        timer = Timer( time_ );
+        lifetimer = Timer( time_ );
         sprite.pos   = pos_;
         sprite.pos.z = sys::z_def_value;
         speed        = speed_;
@@ -40,18 +40,17 @@ namespace ge {
       bool Tick(){
         /// if not frozen call TickPhysic() and update position of the Sprite
         if(frozen) return true;
-        if( not timer.Tick() ){
+        if( not lifetimer.Tick() ){
           TickPhysic();
-          obj.SendChangesFast();
+          sprite.SendChangesFast();
           return true;
         }
-        obj.Hide();
-        obj.SendChangesFast();
+        sprite.Hide();
         return false;
       }
 
       v2 speed, accel, target_pos;
-      Timer lifetime;
+      Timer lifetimer;
       Sprite sprite;
       bool frozen;
       float speed_multiplicator = 1.;
@@ -59,11 +58,11 @@ namespace ge {
 
   class ParticleSystem : public BaseClass {
     public:
-      ParticleSystem(plDrawPrimitive * drawer_, int n_particles_){
+      ParticleSystem(ArrayQuadsDrawer * drawer_, int n_particles_){
         n_particles = n_particles_;
         drawer = drawer_;
         for(int i = 0; i < n_particles; i++){
-          particles_waiting.push( new Particle(drawer->drawer) );
+          particles_waiting.push( new Particle( drawer ) );
         }
       }
 
@@ -77,8 +76,6 @@ namespace ge {
           particles_waiting.push( (*iter) );
           iter = particles_active.erase( iter );
         }
-
-        fsm.Tick();
       }
 
       Particle * Add(const int & time_, const v2 & pos_, const v2 & speed_, TexTile * ttile_){
@@ -87,13 +84,14 @@ namespace ge {
         particle->Init(time_, pos_, speed_, ttile_);
         particles_active.push_back( particle );
         particles_waiting.pop();
-        MSG_DEBUG( __PML__, ", particles used/available:", particles_active.size(), particles_waiting.size() );
+        MSG_DEBUG( __PFN__, ", particles used/available:", particles_active.size(), particles_waiting.size() );
         return particle;
       }
 
       int n_particles;
       list <Particle*> particles_active;
       stack<Particle*> particles_waiting;
+      ArrayQuadsDrawer * drawer;
   };
 }
 

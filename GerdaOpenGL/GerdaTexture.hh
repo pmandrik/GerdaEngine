@@ -25,13 +25,13 @@ namespace ge {
 
   ostream & operator << (ostream & out, TexTile t){return out << "TextureTile( " << t.pos << " " << t.size << " " << t.tpos << " " <<t.tsize << " ) ";};
 
-  class Texture {
+  class Texture : BaseClass {
     public :
     Texture():image(nullptr){}
     Texture(Image * img){
+      MSG_INFO( __PFN__, "from Image", img );
       glGenTextures(1, &id);
       image = img;
-      
       w = image->w;
       h = image->h;
       size = v2(w, h);
@@ -87,8 +87,8 @@ namespace ge {
     Image * image;
   };
 
-  // simple interface to load RGBA PNG images
   Texture * load_texture_with_image(string file_name){
+    /// simple interface to load RGBA PNG images
     Image * img = new Image();
     img->LoadPNG( file_name );
     Texture * text = new Texture( img );

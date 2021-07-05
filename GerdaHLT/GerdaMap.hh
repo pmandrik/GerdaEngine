@@ -14,6 +14,7 @@ namespace ge {
     // int tsize, bullet_grid_size;
     // int * mdata;
     public:
+      TiledMap(){}
       TiledMap( const int & map_size_x, const int & map_size_y, const int & map_size_layers, const int & tile_size, int * map_data ) : BaseClass(), pmTiledMap( map_size_x, map_size_y, map_size_layers, tile_size, map_data) {
       }
 
@@ -33,10 +34,11 @@ namespace ge {
       }
   };
 
-  class TiledMapDrawer() : public BaseClass {
+  class TiledMapDrawer : public BaseClass {
+    public:
     /// draw map using ArrayQuadsDrawer and Sprites
     TiledMapDrawer(TiledMap * map_, ArrayQuadsDrawer * drawer_){
-      map = map_;
+      tiled_map = map_;
       drawer = drawer_;
     }
 
@@ -52,24 +54,29 @@ namespace ge {
       drawer->Draw();
     }
 
+    void AddSprite(Sprite* sprite, bool animated=false){
+      sprite->SetDrawer( drawer );
+      tiles.push_back(sprite);
+    }
+
     vector <Sprite*> tiles;
-    unordered_map<pair<int, int>, Sprite*> animated_tiles;
+    map<pair<int, int>, Sprite*> animated_tiles;
   
-    TiledMap * map;
     ArrayQuadsDrawer * drawer;
+    TiledMap * tiled_map;
   };
 
   // basic 
   class TiledPhysic : public BaseClass, public pmPhysicContainer {
     public:
-      TiledPhysic(TiledMap * map){
-        SetMap( map );
+      TiledPhysic(TiledMap * tiled_map){
+        SetMap( tiled_map );
       }
       
       void SetMap(TiledMap * map_){
         pmPhysicContainer::msize_layers = map_->msize_layers;
         pm_physic.SetMap( (pmTiledMap*)map_ );
-        map = map_;
+        tiled_map = map_;
       }
     
       void Tick(){
@@ -80,7 +87,7 @@ namespace ge {
       
       std::vector< std::pair<int, int> > interacted_object_x_object_pairs;
       std::vector< std::pair<int, int> > interacted_bullet_x_object_pairs;
-      TiledMap * map;
+      TiledMap * tiled_map;
       pmPhysic pm_physic;
   };
   

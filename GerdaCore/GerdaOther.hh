@@ -127,6 +127,16 @@ namespace ge {
 
     return *(sys::screnshoot_prefix) + "_" + postfix + ".png";
   }
+
+  // ======= rect ====================================================================
+  struct Rect{
+    /// rectangular box
+    Rect(float x_min_, float y_min_, float x_max_, float y_max_){
+      x_min = x_min_; x_max = x_max_; y_min = y_min_; y_max = y_max_;
+    }
+    bool Contain(const v2 & pos){ return check_in(pos.x, x_min, x_max) and check_in(pos.y, y_min, y_max); }
+    float x_min, x_max, y_min, y_max;
+  };
 }
 
 #endif 

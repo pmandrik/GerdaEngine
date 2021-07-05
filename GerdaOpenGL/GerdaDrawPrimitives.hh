@@ -38,22 +38,28 @@ namespace ge {
   // ======= draw array of quads ====================================================================
   namespace sys{
     const int   MAX_QUAD_NUMBER      = 10000;
+    const int   MAX_QUAD_NUMBER10    = MAX_QUAD_NUMBER/10;
     const int   QUAD_VERTEXES_NUMBER = 4;
     const int   VERTEX_ARRAY_SIZE    = 5;
     const int   QUAD_ARRAY_SIZE      = QUAD_VERTEXES_NUMBER * VERTEX_ARRAY_SIZE;
     const int   VERTEX_BITE_SIZE     = VERTEX_ARRAY_SIZE*sizeof(GL_FLOAT);
-    const static float PERSPECTIVE_EDGE     = -1000000.;
+    const float PERSPECTIVE_EDGE     = -1000000.;
+    const float HIDE_EDGE            = PERSPECTIVE_EDGE/2;
   };
 
   class ArrayQuadsDrawer : public BaseClass { 
     public :
       ArrayQuadsDrawer(int max_size = sys::MAX_QUAD_NUMBER) {
         max_quads_number = min(max_size, sys::MAX_QUAD_NUMBER);
-        quads_number = 0;
-        for(int i = 0; i < max_quads_number; i++) Remove(i*sys::QUAD_ARRAY_SIZE);
+        Clean();
       }
 
       int FindFreePosition(){
+        if( free_positions.size() ) {
+          int answer = free_positions.top();
+          free_positions.pop();
+          return answer;
+        }
         for(int i = quads_number; i < max_quads_number; i++){
           if(data[i*sys::QUAD_ARRAY_SIZE+2] <= sys::PERSPECTIVE_EDGE){ quads_number = min(i+1, sys::MAX_QUAD_NUMBER); return i; }
         }
@@ -65,7 +71,9 @@ namespace ge {
       }
 
       int AddDummy(){
+        /// reserve ID without updating of the vertex array data
         int id = FindFreePosition() * sys::QUAD_ARRAY_SIZE;
+        msg(id);
         return id;
       }
 
@@ -80,6 +88,16 @@ namespace ge {
         data[id+7]  = sys::PERSPECTIVE_EDGE;
         data[id+12] = sys::PERSPECTIVE_EDGE;
         data[id+17] = sys::PERSPECTIVE_EDGE;
+        if( free_positions.size() < sys::MAX_QUAD_NUMBER10 ) free_positions.push( id );
+      }
+
+      void Clean(){
+        for(int id = 0; id < max_quads_number; id++){
+          data[id+2]  = sys::PERSPECTIVE_EDGE;
+          data[id+7]  = sys::PERSPECTIVE_EDGE;
+          data[id+12] = sys::PERSPECTIVE_EDGE;
+          data[id+17] = sys::PERSPECTIVE_EDGE;
+        }
       }
 
       void Move(const int & id, const v2 & shift){
@@ -131,6 +149,11 @@ namespace ge {
         data[id+17] = pos.z;
       }
 
+      void ChangeSafe(const int & id, const v2 & pos, const v2 & size, const v2 & tpos, const v2 & tsize, const int & angle, const v2 & flip){
+        if(id < 0 or id >= sys::MAX_QUAD_NUMBER) { MSG_WARNING(__PFN__, "can't update data, incorrect index/id", id); return; }
+        Change(id, pos, size, tpos, tsize, angle, flip);
+      }
+
       void Draw(){
         glEnableClientState( GL_VERTEX_ARRAY );
         glVertexPointer(3, GL_FLOAT, sys::VERTEX_BITE_SIZE, data);
@@ -142,10 +165,48 @@ namespace ge {
         glDrawArrays(GL_QUADS, 0, max_quads_number * sys::QUAD_VERTEXES_NUMBER );
       }
 
-      int max_quads_number, quads_number;
+      int max_quads_number, quads_number = 0;
       float data[sys::MAX_QUAD_NUMBER*sys::QUAD_ARRAY_SIZE];
+      std::stack<int> free_positions;
   };
 
+    class DrawableQuad : public BaseClass {
+      public:
+        void SendChangesSafe(){
+          /// safe update of the pos+size data in the drawer vertex array
+          if(not drawer) {MSG_WARNING(__PFN__, "no drawer, cant send changes"); return; }
+          if(not ttile)  {MSG_WARNING(__PFN__, "no texture tile, cant send changes"); return; }
+          drawer->ChangeSafe(draw_id, pos, size, ttile->tpos, ttile->tsize, angle, flip);
+        }
+
+        void SendChanges(){
+          /// unsafe update of the pos+size data in the drawer vertex array 
+          drawer->Change(draw_id, pos, size, ttile->tpos, ttile->tsize, angle, flip);
+        }
+
+        void SendChangesFast(){
+          /// unsafe update of the pos+size data in the drawer vertex array ignoring changes in the size of quad and texture vertexes
+          drawer->ChangeFast(draw_id, pos, size);
+        }
+
+        void SetDrawer(ArrayQuadsDrawer * dr){
+          if(drawer) drawer->Remove(draw_id);
+          drawer  = dr;
+          draw_id = drawer->AddDummy();
+          if(ttile) SendChangesSafe();
+        }
+
+        void Hide(){
+          pos.z = sys::HIDE_EDGE;
+          if(drawer) SendChanges();
+        }
+
+        int draw_id;
+        v2 pos, size, flip;
+        float angle;
+        TexTile * ttile;
+        ArrayQuadsDrawer * drawer;
+    };
 }
 
 #endif

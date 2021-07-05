@@ -12,8 +12,10 @@
 // ======= STL ====================================================================
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <list>
+#include <stack>
 #include <string>
 #include <random>
 #include <math.h>
