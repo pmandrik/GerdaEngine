@@ -4,11 +4,38 @@
 #define GerdaMap_H 1 
 
 namespace ge {
+
+  struct CartaPoint{
+    CartaPoint(const v2 & pos_){ pos = pos_; }
+    CartaPoint(const v2 & pos_, const vector<string> & meta_){
+      pos = pos_;
+      meta = meta_;
+    }
+    v2 pos;
+    vector<string> meta;
+  };
+
+  class Carta {
+    public:
+    map<string, vector<CartaPoint> > coordinates;
+
+    void AddCoodinate(const string & id, const v2 & pos){
+      auto it = coordinates.find(id);
+      if( it != coordinates.end() ) it->second.emplace_back( CartaPoint(pos) );
+      else coordinates[id] = { CartaPoint(pos) };
+    }
+
+    void AddCoodinate(const string & id, const v2 & pos, const vector<string> & meta){
+      auto it = coordinates.find(id);
+      if( it != coordinates.end() ) it->second.emplace_back( CartaPoint(pos, meta) );
+      else coordinates[id] = { CartaPoint(pos, meta) };
+    }
+  };
   
   /// pmTiledMap work with map of integer of sizes: map_size_x * map_size_y * map_size_layers  
   /// map_size_layers mean multiple layers of tiles with different int type  
   /// value 0 of 0 layer is reserved for Solid tiles  
-  class TiledMap : public BaseClass, public pmTiledMap {
+  class TiledMap : public BaseClass, public pmTiledMap, public Carta {
     // pmTiledMap:
     // int msize_x, msize_y, msize_layers, msize_layers_x_msize_y;
     // int tsize, bullet_grid_size;

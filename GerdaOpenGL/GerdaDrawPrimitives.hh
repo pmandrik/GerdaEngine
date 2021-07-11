@@ -37,7 +37,7 @@ namespace ge {
 
   // ======= draw array of quads ====================================================================
   namespace sys{
-    const int   MAX_QUAD_NUMBER      = 10000;
+    const int   MAX_QUAD_NUMBER      = 100000;
     const int   MAX_QUAD_NUMBER10    = MAX_QUAD_NUMBER/10;
     const int   QUAD_VERTEXES_NUMBER = 4;
     const int   VERTEX_ARRAY_SIZE    = 5;
@@ -73,7 +73,6 @@ namespace ge {
       int AddDummy(){
         /// reserve ID without updating of the vertex array data
         int id = FindFreePosition() * sys::QUAD_ARRAY_SIZE;
-        msg(id);
         return id;
       }
 

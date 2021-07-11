@@ -156,7 +156,6 @@ class Sprite : public DrawableQuad {
   }
   
   ImageLine * active_line;
-  TexTile * ttile;
   string active_state;
   map <string, ImageLine> states;
 };
@@ -168,14 +167,22 @@ class Sprite : public DrawableQuad {
 
 
   // Help functions
-  Sprite * load_sprite(ArrayQuadsDrawer * drawer, v2 size){
+  Sprite * create_sprite(Texture * texture, string key, ArrayQuadsDrawer * drawer){
+    Sprite * sprite = new Sprite();
+    sprite->SetDrawer( drawer );
+    TexTile * ttile = texture->GetTexTile(key);
+    sprite->ttile = ttile;
+    return sprite;
+  }
+/*
+   Sprite * create_sprite(ArrayQuadsDrawer * drawer, v2 size){
     Sprite * sprite = new Sprite();
     sprite->size = size*0.5;
     if(drawer) sprite->SetDrawer( drawer );
     return sprite;
   }
 
-
+  
   Sprite * load_sprite(Texture * texture, string anim_name, v2 size, v2 stride, vector<v2> poss){
     Sprite * sprite = load_sprite(nullptr, size);
 
@@ -188,7 +195,7 @@ class Sprite : public DrawableQuad {
     return sprite;
   }
 
-  Sprite * load_sprite(Texture * texture, string anim_name, v2 size, v2 stride, vector<v2> poss, vector<int> times){
+  Sprite * create_sprite(Texture * texture, string anim_name, v2 size, v2 stride, vector<v2> poss, vector<int> times){
     Sprite * sprite = load_sprite(nullptr, size);
 
     ImageLine * anim_line = new ImageLine();
@@ -199,7 +206,7 @@ class Sprite : public DrawableQuad {
 
     return sprite;
   }
-
+*/
 
 }
 

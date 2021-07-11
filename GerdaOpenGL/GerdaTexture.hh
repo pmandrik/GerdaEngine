@@ -94,5 +94,29 @@ namespace ge {
     Texture * text = new Texture( img );
     return text;
   }
+  
+  void add_tiled_atlas(Texture * text, int nx, int ny, int dx=0, int dy=0, int border_width=0){
+    /// default splitting of the texture based on grid with nx*ny tiles
+    /// aligns - distances from borders in pixels
+    if( not text->image ){
+      msg_err(__PFN__, "text->image is not defined, return");
+      return;
+    }
+    
+    int w = text->image->w-border_width;
+    int h = text->image->h-border_width;
+    if( w % nx or h % ny){
+      msg(__PFN__, "incorrect image splitting", w,"%", nx, "or", h, "%", ny, "!=0");
+    }
+    
+    int tile_size_x = w / nx - dx - 2*border_width; 
+    int tile_size_y = h / ny - dy - 2*border_width;
+    for(int x = 0; x < nx; x++){
+      for(int y = 0; y < ny; y++){
+        string key = "X" + to_string(x) + "Y" + to_string(y);
+        text->AddTexTile(key, v2(border_width + tile_size_x*x + dx*x, border_width + tile_size_y*y + dy*y), v2(tile_size_x, tile_size_y));
+      }
+    }
+  }
 }
 #endif 

@@ -43,6 +43,6 @@ add_library(GerdaEngine SHARED ${GE_PATH}/GerdaEngine.cpp ${sources})
 target_link_libraries(GerdaEngine ${SDL2_LIBRARIES})
 
 file(GLOB ENGINE_DATA ${GE_PATH}/Data/*)
-file(COPY ${ENGINE_DATA} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/EngineData)
+file(COPY ${ENGINE_DATA} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Data)
 
 
