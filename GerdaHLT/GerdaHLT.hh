@@ -3,9 +3,11 @@
 #define GerdaHLT_H 1
 
 #include  "GerdaSprite.hh"
-#include  "GerdaDialogs.hh"
+#include  "GerdaDialog.hh"
 #include  "GerdaMap.hh"
+#include  "GerdaObject.hh"
 #include  "GerdaParticle.hh"
+#include  "GerdaPhysic.hh"
 #include  "GerdaDataContainer.hh"
 #include  "GerdaScene.hh"
 

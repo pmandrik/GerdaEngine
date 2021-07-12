@@ -44,9 +44,7 @@ namespace ge {
   // ======= Base Class ====================================================================
   class BaseClass{
     public:
-      BaseClass(){
-        verbose_lvl = sys::def_verbose_lvl;
-      }
+      BaseClass(){ verbose_lvl = sys::def_verbose_lvl; }
       int verbose_lvl;
   };
 
