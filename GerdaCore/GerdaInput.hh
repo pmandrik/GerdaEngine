@@ -173,7 +173,7 @@ namespace ge {
 
   // ======= Functions for load and writing images ====================================================================
   // checker image, 4x4, GL_RED, GL_UNSIGNED_BYTE data.
-  static float gl_test_image_data[] = { 1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f, 1.0f,
+  const float gl_test_image_data[] = { 1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f, 1.0f,
                                           0.0f, 0.0f, 1.0f, 1.0f,   1.0f, 1.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,   1.0f, 1.0f, 0.0f, 1.0f,
                                           1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f, 1.0f,
                                           0.0f, 0.0f, 1.0f, 1.0f,   1.0f, 1.0f, 0.0f, 1.0f,   0.0f, 0.0f, 1.0f, 1.0f,   1.0f, 1.0f, 0.0f, 1.0f  };
@@ -207,9 +207,8 @@ namespace ge {
             int r = (int)((unsigned char*)data)[y*comp*w + x*comp + 0];
             int g = (int)((unsigned char*)data)[y*comp*w + x*comp + 1];
             int b = (int)((unsigned char*)data)[y*comp*w + x*comp + 2];
-            if(r == 255 and g == 0 and b == 0) ((unsigned char*)data)[y*comp*w + x*comp + 3] = 0;
-            if(r == 0 and g == 255 and b == 0) ((unsigned char*)data)[y*comp*w + x*comp + 3] = 0;
-            // if(r == 255 and g == 0 and b == 255) ((unsigned char*)data)[y*comp*w + x*comp + 3] = 0.25;
+            if( sys::alpha_color_1.Equal_i(r,g,b) or sys::alpha_color_2.Equal_i(r,g,b) or sys::alpha_color_3.Equal_i(r,g,b) ) 
+              ((unsigned char*)data)[y*comp*w + x*comp + 3] = 0;
           }
         }
         name = file_name;

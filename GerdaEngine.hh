@@ -107,6 +107,7 @@ namespace ge {
     sys::mouse        = new Mouse();
     sys::keyboard     = new Keyboard();
     sys::event_sys    = new EventSystem();
+    sys::data_sys     = new DataContainer();
 
     sys::screenshoot_counter     = 100;
     sys::screenshoot_image       = new Image(sys::WW, sys::WH);

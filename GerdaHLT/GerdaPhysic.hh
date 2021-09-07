@@ -26,12 +26,11 @@ namespace ge {
 
     virtual bool CheckBit(Object * obj){ return bit_index & obj->field_bits; }
     virtual int GetChargeBit(Object * obj){ return 2 * (bit_index & obj->field_charge_bits) - 1; }
-    
+
     virtual void Apply(Object * obj){};
   };
 
   class ConstantField : public Field {
-    
     v3 force;
     virtual void Apply(Object * obj){
       obj->force += force * GetChargeBit( obj );

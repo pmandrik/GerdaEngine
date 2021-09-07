@@ -10,6 +10,7 @@ namespace ge {
   class FrameBuffer;
   class Image;
   class Timer;
+  class DataContainer;
 
   namespace sys{
     // ======= SYSTEM CFG ====================================================================
@@ -72,6 +73,7 @@ namespace ge {
     Mouse       * mouse;
     Keyboard    * keyboard;
     EventSystem * event_sys;
+    DataContainer * data_sys;
 
     int     screenshoot_counter = 0;
     int     screenshoot_sec = 0;
@@ -82,6 +84,11 @@ namespace ge {
     Camera * camera;
 
     // ======= SYSTEMS CONSTANTS ====================================================================
+    // IO Image
+    rgb alpha_color_1 = rgb(255,0,0); 
+    rgb alpha_color_2 = rgb(0,255,0);     
+    rgb alpha_color_3 = rgb(-1,-1,-1);
+
     // ======= LANGUAGE SUPPORT 
     // ENG
     const string ABC_en = string("QWERTYUIOPLKJHGFDSAZXCVBNM");

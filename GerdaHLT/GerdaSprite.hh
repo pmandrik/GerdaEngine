@@ -11,10 +11,16 @@ class ImageLine {
   ImageLine() : empty(true) { Reset(); }
   ~ImageLine(){}
 
+  void SetRandom(){
+    image = randint(0, images.size()-1);
+    time  = randint(0, times[image]-1);
+    Get();
+  }
+
   void Reset(bool reverse = false){ 
     if(reverse) image = images.size()-1;
     else        image = 0;
-    time = 0; get_end = false; 
+    time = 0; get_end = false, get_next = false; 
   }
 
   void Add(TexTile * image, int time){
@@ -30,6 +36,8 @@ class ImageLine {
   }
 
   TexTile * Get(bool reverse = false){
+    get_end = false;
+    get_next = false;
     TexTile * answer = images[image];
     if((++time) >= times[image]){
       if(reverse){
@@ -45,6 +53,7 @@ class ImageLine {
         }
       }
       time = 0;
+      get_next = true;
     }
     return answer;
   }
@@ -52,7 +61,7 @@ class ImageLine {
   vector <TexTile*> images;
   vector <int> times;
   int time, image;
-  bool get_end, empty;
+  bool get_end, get_next, empty;
 };
 
 class Sprite : public DrawableQuad {
@@ -72,7 +81,6 @@ class Sprite : public DrawableQuad {
     drawer       = nullptr;
     draw_id      = -1;
     if(sprite->drawer) SetDrawer(sprite->drawer);
-
     states = sprite->states;
     if(states.size()){
       active_line = &(states.begin()->second);
@@ -110,7 +118,7 @@ class Sprite : public DrawableQuad {
   }
 
   // IMAGE PART
-  void AddLine(const char * str, ImageLine * line){
+  void AddLine(string str, ImageLine * line){
     states[string(str)] = *line;
     if( not active_state.size() ){ 
       active_state = string(str);
@@ -166,14 +174,66 @@ class Sprite : public DrawableQuad {
 
 
 
-  // Help functions
+  // Help functions sprite //
   Sprite * create_sprite(Texture * texture, string key, ArrayQuadsDrawer * drawer){
+    if( not texture ){
+      msg_err(__PFN__, "texture is not defined, return nullptr");
+      return nullptr;
+    }
     Sprite * sprite = new Sprite();
     sprite->SetDrawer( drawer );
     TexTile * ttile = texture->GetTexTile(key);
     sprite->ttile = ttile;
     return sprite;
   }
+
+  Sprite * create_sprite(ArrayQuadsDrawer * drawer, const vector<string> & states, const vector<ImageLine*> & lines){
+    Sprite * sprite = new Sprite();
+    sprite->SetDrawer( drawer );
+    for(int i = 0; i < states.size(); i++){
+      sprite->AddLine(states.at(i), lines.at(i));
+    }
+    return sprite;
+  }
+
+  Sprite * copy_sprite(Sprite * sprite){
+    return new Sprite( sprite );
+  }
+
+  // Help functions ImageLine //
+  ImageLine * create_imageline(Texture * text, string name, int nx, int ny, int time){
+    if( not text ){
+      msg_err(__PFN__, "texture is not defined, return nullptr");
+      return nullptr;
+    }
+    if(nx==0 and ny==0) return nullptr;
+    if(nx==0) nx++;
+    if(ny==0) ny++;
+
+    ImageLine * anim_line = new ImageLine();
+    for( int x = 0; x < nx; x++ ) { 
+      for( int y = 0; y < ny; y++ ) { 
+        string key = text->GenerateAtlasName(name, x, y);
+        TexTile * ttile = text->GetTexTile( key );
+        anim_line->Add( ttile, time );
+      }
+    }
+    return anim_line;
+  }
+
+  ImageLine * create_imageline(Texture * text, const vector<string> & names, int time){
+    if( not text ){
+      msg_err(__PFN__, "texture is not defined, return");
+      return nullptr;
+    }
+    ImageLine * anim_line = new ImageLine();
+    for( auto name : names ) { 
+      TexTile * ttile = text->GetTexTile( name );
+      anim_line->Add( ttile, time );
+    }
+    return anim_line;
+  }
+
 /*
    Sprite * create_sprite(ArrayQuadsDrawer * drawer, v2 size){
     Sprite * sprite = new Sprite();
