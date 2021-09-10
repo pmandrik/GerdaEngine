@@ -4,6 +4,11 @@
 #define GerdaAlgo_H 1
 
 namespace ge {
+  //------------------------------------------------------------------ INTERPOLATION ------------------------------------------------------------------
+  v2 interpolation_linear(const v2 & p1, const v2 & p2, const float & frac){
+    return p1 + (p2 - p1) * frac;
+  }
+
   //------------------------------------------------------------------ INTERSECTIONS ------------------------------------------------------------------
   bool is_point_in_box(const v2 & point, const v2 & box_center, const v2 & box_size){
     // dV.x = x_t - x_0 = A * x_1 + B * x_2
