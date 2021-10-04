@@ -15,9 +15,40 @@ namespace ge {
     vector<string> meta;
   };
 
+  struct CartaTrack{
+    vector<v2> points;
+    float lenght = -1;
+
+    float GetLenght(){
+      float L = 0;
+      for(int i = 1; i < points.size(); ++i)
+        L += (points[i] - points[i-1]).L();
+      return L;
+    }
+
+    v2 GetPos(const float & step){
+      if( not points.size() ) return v2();
+      if( lenght < 0 ) lenght = GetLenght();
+      if( points.size() == 1 or lenght <= 0) return points.at(0);
+
+      float L = 0, dL = 0;
+      int N_step = 1;
+      for(N_step = 1; i < points.size(); ++i){
+        dL = (points[i] - points[i-1]).L();
+        if( step <= (L+dL) / lenght ) break;
+        L += dL;
+      }
+
+      float frac = (step - L/lenght);
+      return interpolation_linear( points[N_step-1], points[N_step], frac );
+    }
+
+  };
+
   class Carta {
     public:
     map<string, vector<CartaPoint> > coordinates;
+    map<string, vector<CartaTrack> > tracks;
 
     void AddCoodinate(const string & id, const v2 & pos){
       auto it = coordinates.find(id);
