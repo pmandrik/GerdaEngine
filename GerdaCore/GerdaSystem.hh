@@ -101,6 +101,10 @@ namespace ge {
     // SYMBOLS
     const string abc_numbers = string("1234567890");
     const string abc_symbols = string(" !@#$%^*()_+-=[];\',./{}:\"<>?");
+
+    // ======= SHADERS
+    string default_shader_vert_path = "Data/default_shaders/shader_FB_def.vert";
+    string default_shader_frag_path = "Data/default_shaders/shader_FB_def.frag";
   }
   
 };

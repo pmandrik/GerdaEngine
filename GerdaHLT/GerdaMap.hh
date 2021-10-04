@@ -93,7 +93,7 @@ namespace ge {
     TiledMap * tiled_map;
   };
 
-  // basic 
+  // basic lightweight wrapper around pmPhysicContainer
   class TiledPhysic : public BaseClass, public pmPhysicContainer {
     public:
       TiledPhysic(TiledMap * tiled_map){

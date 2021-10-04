@@ -180,6 +180,8 @@ namespace ge {
   };
 
   FrameShader * load_frame_shader(string name, string path_vert, string path_frag, int n_vars, int n_texts = 1, float stime = 0.){
+    if(not path_vert.size()) path_vert = sys::default_shader_vert_path;
+    if(not path_frag.size()) { path_frag = sys::default_shader_frag_path; n_vars=0; n_texts=1; }
     FrameShader* shader = new FrameShader(n_vars, n_texts, stime);
     string vert_txt = read_text_files( path_vert );
     string frag_txt = read_text_files( path_frag );
