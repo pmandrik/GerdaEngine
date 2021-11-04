@@ -51,6 +51,7 @@ namespace ge {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Untarget();
       }
+      void Clean(){ Clear(); };
 
       void BindTexture(const int & index){
         glActiveTexture(GL_TEXTURE0 + index);
@@ -137,6 +138,19 @@ namespace ge {
     FrameBuffer *active, *back;
   };
 
+  // Texture to FB ==============
+  void draw_Text_to_FB(Texture * text, FrameBuffer * fb_target, FrameShader * shader=nullptr){
+    if(shader){
+      shader->Bind();
+      shader->UpdateUniforms();
+    }
+    fb_target->Target();
+    text->Draw(v2(), sys::FBV2);
+    fb_target->Untarget();
+    if(shader) shader->Unbind();
+  };
+
+  // FB to FB ==============
   void draw_FB_to_FB(FrameBuffer * fb, FrameBuffer * fb_target, FrameShader * shader=nullptr){
     if(shader){
       shader->Bind();
@@ -150,6 +164,7 @@ namespace ge {
     if(shader) shader->Unbind();
   }
 
+  // FB+FB to FB ==============
   void draw_2FB_to_FB(FrameBuffer * fb1, FrameBuffer * fb2, FrameBuffer * fb_target, FrameShader * shader=nullptr){
     if(shader){
       shader->Bind();

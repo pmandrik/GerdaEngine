@@ -105,6 +105,8 @@ namespace ge {
     // ======= SHADERS
     string default_shader_vert_path = "Data/default_shaders/shader_FB_def.vert";
     string default_shader_frag_path = "Data/default_shaders/shader_FB_def.frag";
+
+    // ======= PATH
   }
   
 };

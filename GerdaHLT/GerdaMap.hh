@@ -33,8 +33,8 @@ namespace ge {
 
       float L = 0, dL = 0;
       int N_step = 1;
-      for(N_step = 1; i < points.size(); ++i){
-        dL = (points[i] - points[i-1]).L();
+      for(; N_step < points.size(); ++N_step){
+        dL = (points[N_step] - points[N_step-1]).L();
         if( step <= (L+dL) / lenght ) break;
         L += dL;
       }

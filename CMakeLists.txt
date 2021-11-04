@@ -29,7 +29,7 @@ if(FALSE)
       target_link_libraries( ${testname} GerdaEngine )
   endforeach( testsourcefilefull ${APP_SOURCES} )
 else()
-  add_executable( Test03 ${TEST_PATH}/Test03.cpp )
+  add_executable( Test03 ${TEST_PATH}/Test04.cpp )
   target_link_libraries( Test03 GerdaEngine )
 endif()
 

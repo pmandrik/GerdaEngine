@@ -136,16 +136,18 @@ namespace ge {
   // special case of shader for framebuffer with up to 3 textures and up to 10 variables + 'time'
   class FrameShader : public Shader {
     public:
-    FrameShader(const int & vn = 0, const int & tn = 0, const float & stime = 0.){
+    FrameShader(const int & vn = 0, const int & tn = 0){
       var_number = vn;
       text_number = tn;
-      time = stime;
+      for(int i = 0; i < 10; i++) vars_def[i] = 0.0;
       ResetVars();
+      ResetTime();
     }
 
-    void ResetVars(){
-      for(int i = 0; i < 10; i++) vars[i] = 0;
-    }
+    void ResetVars(){ for(int i = 0; i < 10; i++) vars[i] = vars_def[i]; }
+    void ResetTime(){ time = time_def; }
+    void SetDefVars(const vector<float> & vars_v){ for(int i = 0; i < vars_v.size(); i++) vars[i] = vars_v.at(i); }
+    void SetDefTime(const float & t){ time_def = t; }
 
     string GetVarName(const int & index){
       return "var_" + to_string(index) ;
@@ -174,15 +176,27 @@ namespace ge {
       }
     }
 
-    float time;
-    float vars[10];
+    float time, time_def;
+    float vars[10], vars_def[10];
     int var_number, text_number;
   };
+  
+  string parse_shader_path(const char * p){
+    /// check of Path alias is used in the string name
+    /// replace with following rule "def:->Data/default_shaders/"
+    if(not p) return "";
+    string path = string(p);
+    pm::replace_all_map( path, { std::make_pair<string, string> ("def:", "Data/default_shaders/") } );
+    return path;
+  }
 
-  FrameShader * load_frame_shader(string name, string path_vert, string path_frag, int n_vars, int n_texts = 1, float stime = 0.){
+  FrameShader * load_frame_shader(string name, string path_vert, string path_frag, int n_vars, int n_texts = 1){
+    path_vert = parse_shader_path( path_vert.c_str() );
+    path_frag = parse_shader_path( path_frag.c_str() );
+
     if(not path_vert.size()) path_vert = sys::default_shader_vert_path;
     if(not path_frag.size()) { path_frag = sys::default_shader_frag_path; n_vars=0; n_texts=1; }
-    FrameShader* shader = new FrameShader(n_vars, n_texts, stime);
+    FrameShader* shader = new FrameShader(n_vars, n_texts);
     string vert_txt = read_text_files( path_vert );
     string frag_txt = read_text_files( path_frag );
     msg( frag_txt );

@@ -13,6 +13,7 @@ link_directories(/home/me/my/gd/rstmn/engine_progress/SDL2-2.0.5/build/)
 set(SDL2_LIBRARIES SDL2-2.0.so)
 
 #-- PMANDRIK_LIBRARY
+add_definitions(-DNO_CERN_ROOT)
 include_directories( ${GE_PATH}/Extern/PMANDRIK_LIBRARY/ )
 
 #-- TINYXML2

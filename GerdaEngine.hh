@@ -27,6 +27,7 @@ using namespace std;
 // ======= PMANDRIK_LIBRARY ============================================================
 #include "pmlib_v2d.hh"
 #include "pmlib_msg.hh"
+#include "pmlib_other.hh"
 #include "pmlib_2d_physics.c"
 using namespace pm;
 
@@ -120,6 +121,13 @@ namespace ge {
 
     msg("init_gerda() ... done");
     return true;
+  }
+
+  bool init_sdl_screen_opengl_gerda(){
+    init_sdl();
+    init_sdl_screen();
+    init_opengl();
+    init_gerda();
   }
 
   void tick_gerda(){
