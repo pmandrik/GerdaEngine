@@ -23,6 +23,18 @@ namespace ge {
     }
   }
 
+  float get_float_xml_element_value(XMLElement* mother, string key, float answer){
+    XMLElement* el = mother->FirstChildElement( key.c_str() );
+    if(el) answer = atof(el->GetText());
+    return answer;
+  }
+
+  float get_int_xml_element_value(XMLElement* mother, string key, int answer){
+    XMLElement* el = mother->FirstChildElement( key.c_str() );
+    if(el) answer = atoi(el->GetText());
+    return answer;
+  }
+
   struct TiledMapObject {
     TiledMapObject(v2 p, v2 s, v2 f, string n, float a, int l, bool t = false, string gname = "") : pos(p), size(s), flip(f), name(n), angle(a), level(l), is_tile(t), group_name(gname) {};
 

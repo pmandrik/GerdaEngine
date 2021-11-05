@@ -199,7 +199,14 @@ namespace ge {
     FrameShader* shader = new FrameShader(n_vars, n_texts);
     string vert_txt = read_text_files( path_vert );
     string frag_txt = read_text_files( path_frag );
-    msg( frag_txt );
+
+    ltrim(vert_txt);
+    ltrim(frag_txt);
+    rtrim(vert_txt);
+    rtrim(frag_txt);
+
+    int verbose_lvl = shader->verbose_lvl;
+    MSG_DEBUG( frag_txt );
     shader->LoadFromString(GL_VERTEX_SHADER, vert_txt.c_str());
     shader->LoadFromString(GL_FRAGMENT_SHADER, frag_txt.c_str());
     shader->CreateProgram();

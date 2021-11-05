@@ -61,6 +61,7 @@ namespace ge {
 
     // OTHER
     int def_verbose_lvl = verbose::VERBOSE;
+    int verbose_lvl     = verbose::VERBOSE;
 
     // ======= SOME GLOBAL SYSTEMS ====================================================================
     SDL_Window * window;
