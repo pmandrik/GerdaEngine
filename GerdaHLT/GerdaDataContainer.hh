@@ -163,10 +163,10 @@ namespace ge {
         delete sla; continue;
       }
 
-      float pos_x  = get_float_xml_element_value( el, "pos_x", 0.f );
-      float pos_y  = get_float_xml_element_value( el, "pos_y", 0.f );
-      float size_x = get_float_xml_element_value( el, "size_x", 1.f );
-      float size_y = get_float_xml_element_value( el, "size_y", 1.f );
+      float pos_x  = get_xml_attribute_float( el, "pos_x", "value", 0.f );
+      float pos_y  = get_xml_attribute_float( el, "pos_y", "value", 0.f );
+      float size_x = get_xml_attribute_float( el, "size_x", "value", 1.f );
+      float size_y = get_xml_attribute_float( el, "size_y", "value", 1.f );
       sla->text_pos = v2(pos_x, pos_y);
       sla->text_size = v2(size_x, size_y);
 
@@ -195,12 +195,39 @@ namespace ge {
     for(XMLElement* el = doc.FirstChildElement( "SLaFBLoop" ); el; el = el->NextSiblingElement("SLaFBLoop")){
       SLaFBLoop * sla = new SLaFBLoop();
       if( not get_common_sla_xml( el, dc, (SLa*)sla ) ) { delete sla; continue; }
-      sla->loops = get_int_xml_element_value( el, "loops", 1 );
+      sla->loops = get_xml_attribute_int( el, "loops", 1 );
       MSG_DEBUG(__PFN__, "kind SLaFBLoop");
       system->slas_map[sla->name] = sla;
     }
 
     /// Chain
+    for(XMLElement* el = doc.FirstChildElement( "SLaChain" ); el; el = el->NextSiblingElement("SLaChain")){
+      const char * name = el->Attribute("name");
+      if(not name) {
+        msg_err(__PFN__, "skip SLaChain without \"name\" Attribute");
+        continue;
+      } MSG_DEBUG(__PFN__, "find SLaChain", name);
+
+      SLaChain * chain = new SLaChain( dc );
+      for(XMLElement* link_el = el->FirstChildElement( "link" ); link_el; link_el = link_el->NextSiblingElement("SLaChain")){
+        const char * value = link_el->Attribute("value");
+        if(not value) {
+          msg_err(__PFN__, "skip link without \"value\" Attribute");
+          continue;
+        } MSG_DEBUG(__PFN__, "find link", value);
+
+        string value_cpp = string(value);
+        std::vector<std::string> & value_cpp_parts;
+        pm::split_string_strip(value_cpp, value_cpp_parts, "->");
+        if( not value_cpp_parts.size() ){
+          msg_err(__PFN__, "skip link without \"->\" separated parts");
+          continue;
+        } MSG_DEBUG(__PFN__, "find link with N parts = ", value_cpp_parts.size());
+
+        dc->;
+      }
+      
+    }
   }
   
   bool load_gerdadata_xml(string filename, DataContainer * dc){
@@ -272,12 +299,12 @@ namespace ge {
       /// shader vars, time, n_textures
       vector<float> vars;
       for(XMLElement* var_el = shaders_el->FirstChildElement( "var" ); var_el; var_el = var_el->NextSiblingElement("var")){
-        MSG_DEBUG(__PFN__, "var", vars.size(), var_el->GetText() );
-        vars.push_back( atof(var_el->GetText()) );
+        MSG_DEBUG(__PFN__, "var", get_xml_attribute_float(var_el, "value", 0.f) );
+        vars.push_back( get_xml_attribute_float(var_el, "value", 0.f) );
       }
 
-      float time     = get_float_xml_element_value( shaders_el, "time", 0.f );
-      int n_textures = get_int_xml_element_value( shaders_el, "n_textures", 1 );
+      float time     = get_xml_attribute_float( shaders_el, "time", "value", 0.f );
+      int n_textures = get_xml_attribute_int( shaders_el, "texture", "N", 1 );
 
       FrameShader * shader = load_frame_shader(name, vert_str, frag_str, vars.size(), n_textures);
       shader->SetDefVars( vars );

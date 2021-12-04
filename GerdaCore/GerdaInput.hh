@@ -23,16 +23,40 @@ namespace ge {
     }
   }
 
-  float get_float_xml_element_value(XMLElement* mother, string key, float answer){
+  float get_xml_element_float(XMLElement* mother, string key, float answer){
     XMLElement* el = mother->FirstChildElement( key.c_str() );
-    if(el) answer = atof(el->GetText());
-    return answer;
+    if(not el) return answer;
+    return atof(el->GetText());
   }
 
-  float get_int_xml_element_value(XMLElement* mother, string key, int answer){
+  float get_xml_element_int(XMLElement* mother, string key, int answer){
     XMLElement* el = mother->FirstChildElement( key.c_str() );
-    if(el) answer = atoi(el->GetText());
-    return answer;
+    if(not el) return answer;
+    return atoi(el->GetText());
+  }
+
+  float get_xml_attribute_float(XMLElement* el, string attribute_key, float answer){
+    if(not el) return answer;
+    const char * value = el->Attribute( attribute_key.c_str() );
+    if(not value) return answer;
+    return atof( value );
+  }
+
+  float get_xml_attribute_int(XMLElement* el, string attribute_key, int answer){
+    if(not el) return answer;
+    const char * value = el->Attribute( attribute_key.c_str() );
+    if(not value) return answer;
+    return atoi( value );
+  }
+
+  float get_xml_attribute_float(XMLElement* mother, string key, string attribute_key, float answer){
+    XMLElement* el = mother->FirstChildElement( key.c_str() );
+    return get_xml_attribute_float(el, attribute_key, answer);
+  }
+
+  float get_xml_attribute_int(XMLElement* mother, string key, string attribute_key, int answer){
+    XMLElement* el = mother->FirstChildElement( key.c_str() );
+    return get_xml_attribute_int(el, attribute_key, answer);
   }
 
   struct TiledMapObject {
