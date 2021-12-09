@@ -9,6 +9,7 @@
 #include  "GerdaParticle.hh"
 #include  "GerdaPhysic.hh"
 #include  "GerdaDataContainer.hh"
+#include  "GerdaSLa.hh"
 #include  "GerdaScene.hh"
 
 #endif

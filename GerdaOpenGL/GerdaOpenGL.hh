@@ -60,7 +60,6 @@ namespace ge {
 #include "GerdaDrawPrimitives.hh"
 #include "GerdaShader.hh"
 #include "GerdaFrameBuffer.hh"
-#include "GerdaSLa.hh"
 
 #endif
 

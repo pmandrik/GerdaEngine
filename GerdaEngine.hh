@@ -21,6 +21,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <ctime>
+#include <cctype>
+#include <algorithm>
 #include <functional>
 using namespace std;
 

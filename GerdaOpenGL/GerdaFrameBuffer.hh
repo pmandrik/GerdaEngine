@@ -150,6 +150,18 @@ namespace ge {
     if(shader) shader->Unbind();
   };
 
+  // FB to screen ==============
+  void draw_FB_to_Screen(FrameBuffer * fb, FrameShader * shader=nullptr){
+    if(shader){
+      shader->Bind();
+      shader->UpdateUniforms();
+    }
+    fb->BindTexture(0);
+    fb->DrawQuad(-sys::WW2, -sys::WH2, sys::WW2, sys::WH2);
+    fb->UnbindTexture(0);
+    if(shader) shader->Unbind();
+  }
+
   // FB to FB ==============
   void draw_FB_to_FB(FrameBuffer * fb, FrameBuffer * fb_target, FrameShader * shader=nullptr){
     if(shader){
@@ -178,6 +190,20 @@ namespace ge {
     fb2->UnbindTexture(1);  
     glActiveTexture(GL_TEXTURE0);
     fb_target->Untarget();
+    if(shader) shader->Unbind();
+  }
+
+  void draw_2FB_to_Screen(FrameBuffer * fb1, FrameBuffer * fb2, FrameShader * shader=nullptr){
+    if(shader){
+      shader->Bind();
+      shader->UpdateUniforms();
+    }
+    fb1->BindTexture(0);
+    fb2->BindTexture(1);
+    fb1->DrawQuad(-sys::WW2, -sys::WH2, sys::WW2, sys::WH2);
+    fb1->UnbindTexture(0);
+    fb2->UnbindTexture(1);  
+    glActiveTexture(GL_TEXTURE0);
     if(shader) shader->Unbind();
   }
 }

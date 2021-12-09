@@ -1,7 +1,3 @@
-/*
-
-*/
-
 #version 130
 
 smooth in vec4 inColor;
@@ -13,11 +9,6 @@ uniform sampler2D text_1;
 uniform float time;
 uniform float var_0;
 uniform float var_1;
-uniform float var_2;
-uniform float var_3;
-uniform float var_4;
-uniform float var_5;
-uniform float var_6;
 
 void main(){
   vec2 pos  = gl_TexCoord[0].st;
