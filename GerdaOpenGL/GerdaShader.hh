@@ -180,20 +180,8 @@ namespace ge {
     float vars[10], vars_def[10];
     int var_number, text_number;
   };
-  
-  string parse_shader_path(const char * p){
-    /// check of Path alias is used in the string name
-    /// replace with following rule "def:->Data/default_shaders/"
-    if(not p) return "";
-    string path = string(p);
-    pm::replace_all_map( path, { std::make_pair<string, string> ("def:", "Data/default_shaders/") } );
-    return path;
-  }
 
   FrameShader * load_frame_shader(string name, string path_vert, string path_frag, int n_vars, int n_texts = 1){
-    path_vert = parse_shader_path( path_vert.c_str() );
-    path_frag = parse_shader_path( path_frag.c_str() );
-
     if(not path_vert.size()) path_vert = sys::default_shader_vert_path;
     if(not path_frag.size()) { path_frag = sys::default_shader_frag_path; n_vars=0; n_texts=1; }
     FrameShader* shader = new FrameShader(n_vars, n_texts);

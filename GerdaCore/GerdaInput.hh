@@ -3,6 +3,18 @@
 #define GERDA_INPUT_HH 1
 
 namespace ge {
+
+  // ======= Functions for load XML Tiled Map ====================================================================
+  // { std::make_pair<string, string> ("def:", "Data/default_shaders/") }
+  string parse_gerda_db_path(const char * p, map<string,string> & path_db){
+    /// check of Path alias is used in the string name
+    /// replace with following rule "def:->Data/default_shaders/"
+    if(not p) return "";
+    string path = string(p);
+    pm::replace_all_map( path, path_db );
+    return path;
+  }
+
   // ======= Functions for load XML Tiled Map ====================================================================
   static const long int MAGIC_TILED_NUMBER = 1073741824;
 

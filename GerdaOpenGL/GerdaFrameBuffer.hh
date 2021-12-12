@@ -157,7 +157,7 @@ namespace ge {
       shader->UpdateUniforms();
     }
     fb->BindTexture(0);
-    fb->DrawQuad(-sys::WW2, -sys::WH2, sys::WW2, sys::WH2);
+    fb->DrawQuad(-sys::WW2, sys::WH2, sys::WW2, -sys::WH2);
     fb->UnbindTexture(0);
     if(shader) shader->Unbind();
   }
@@ -200,7 +200,7 @@ namespace ge {
     }
     fb1->BindTexture(0);
     fb2->BindTexture(1);
-    fb1->DrawQuad(-sys::WW2, -sys::WH2, sys::WW2, sys::WH2);
+    fb1->DrawQuad(-sys::WW2, sys::WH2, sys::WW2, -sys::WH2);
     fb1->UnbindTexture(0);
     fb2->UnbindTexture(1);  
     glActiveTexture(GL_TEXTURE0);

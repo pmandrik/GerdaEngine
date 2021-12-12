@@ -35,6 +35,7 @@ namespace ge {
 
     Object * player;
     map<string, Object*> players;
+    map<string,string> path_db = { std::make_pair<string, string> ("def:", "Data/default_shaders/") };
 
     // ======= get ====================================================================
     template<typename T>
