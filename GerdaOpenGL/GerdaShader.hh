@@ -14,10 +14,10 @@ namespace ge {
       first_run = true;
       shader_name = "unnamed";
     }
-    ~Shader(){}
+    ~Shader(){ TurnOff(); }
 
-    void Load(string path_to_folder){
-      
+    void TurnOff(){
+      msg_err( "Shader TurnOff() not implemented yet" );
     }
 
     void LoadFromString(GLenum type, const string & text){
@@ -144,6 +144,35 @@ namespace ge {
       ResetTime();
     }
 
+    void Print(){
+      msg( "//", shader_name );
+      for(int i = 0; i < var_number; i++)
+        msg("shader->vars[", i, "] =", vars[i], ";");
+    }
+
+    void Load(string path_vert_, string path_frag_){
+      path_vert = path_vert_;
+      path_frag = path_frag_;
+
+      string vert_txt = read_text_files( path_vert );
+      string frag_txt = read_text_files( path_frag );
+
+      ltrim(vert_txt);
+      ltrim(frag_txt);
+      rtrim(vert_txt);
+      rtrim(frag_txt);
+
+      MSG_DEBUG( frag_txt );
+      LoadFromString(GL_VERTEX_SHADER,   vert_txt.c_str());
+      LoadFromString(GL_FRAGMENT_SHADER, frag_txt.c_str());
+      CreateProgram();
+    }
+
+    void Reload(){
+      this->TurnOff();
+      this->Load(path_vert, path_frag);
+    }
+
     void ResetVars(){ for(int i = 0; i < 10; i++) vars[i] = vars_def[i]; }
     void ResetTime(){ time = time_def; }
     void SetDefVars(const vector<float> & vars_v){ for(int i = 0; i < vars_v.size(); i++) vars[i] = vars_v.at(i); }
@@ -179,25 +208,14 @@ namespace ge {
     float time, time_def;
     float vars[10], vars_def[10];
     int var_number, text_number;
+    string path_vert, path_frag;
   };
 
   FrameShader * load_frame_shader(string name, string path_vert, string path_frag, int n_vars, int n_texts = 1){
     if(not path_vert.size()) path_vert = sys::default_shader_vert_path;
     if(not path_frag.size()) { path_frag = sys::default_shader_frag_path; n_vars=0; n_texts=1; }
     FrameShader* shader = new FrameShader(n_vars, n_texts);
-    string vert_txt = read_text_files( path_vert );
-    string frag_txt = read_text_files( path_frag );
-
-    ltrim(vert_txt);
-    ltrim(frag_txt);
-    rtrim(vert_txt);
-    rtrim(frag_txt);
-
-    int verbose_lvl = shader->verbose_lvl;
-    MSG_DEBUG( frag_txt );
-    shader->LoadFromString(GL_VERTEX_SHADER, vert_txt.c_str());
-    shader->LoadFromString(GL_FRAGMENT_SHADER, frag_txt.c_str());
-    shader->CreateProgram();
+    shader->Load(path_vert, path_frag);
     shader->shader_name = name;
     return shader;
   }
@@ -209,6 +227,14 @@ namespace ge {
       shaders_iter = 0;
       dir = 1;
       shader_prev = nullptr;
+    }
+
+    void ReloadShaders(){
+      for(auto shader : shaders) shader->Reload();      
+    }
+
+    void PrintShaders(){
+      for(auto shader : shaders) shader->Print();
     }
   
     void Tick(){
@@ -232,10 +258,8 @@ namespace ge {
       if(sys::keyboard->Pressed(key::K_8)) { shader->vars[7] += dvar; msg(shader->vars[7]); }
       if(sys::keyboard->Pressed(key::K_9)) { shader->vars[8] += dvar; msg(shader->vars[8]); }
       if(sys::keyboard->Pressed(key::K_0)) { shader->ResetVars(); }
-      if(sys::keyboard->Pressed(key::SPACE)){
-        for(int i = 0; i < 9; i++)
-          msg("shader->vars[", i, "] = ", shader->vars[i], ";");
-      };
+      if(sys::keyboard->Pressed(key::SPACE)) PrintShaders();
+      if(sys::keyboard->Pressed(key::R))     ReloadShaders();
       shader_prev = shader;
     }
     int shaders_iter, dir;
