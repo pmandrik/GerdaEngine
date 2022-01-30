@@ -144,10 +144,22 @@ namespace ge {
       ResetTime();
     }
 
-    void Print(){
-      msg( "//", shader_name );
-      for(int i = 0; i < var_number; i++)
-        msg("shader->vars[", i, "] =", vars[i], ";");
+    void Print(string format = "cpp"){
+      if( format == "cpp" ){
+        msg( "//", shader_name );
+        msg( "//", path_vert );
+        msg( "//", path_frag );
+        for(int i = 0; i < var_number; i++)
+          msg("shader->vars[", i, "] =", vars[i], ";");
+      } else if ( format == "xml" ) {
+        msg_nll( "<shader name=\"" + shader_name + "\"" );
+        msg_nll( "vert=\"" + path_vert + "\"" );
+        msg_nll( "frag=\"" + path_frag + "\"" );
+        msg_nll( ">\n" );
+        for(int i = 0; i < var_number; i++)
+          msg_nll( "<var value=\"" + to_string( vars[i] ) + "\">" );
+        msg_nll( "\n</shader>\n" );
+      }
     }
 
     void Load(string path_vert_, string path_frag_){
@@ -227,6 +239,7 @@ namespace ge {
       shaders_iter = 0;
       dir = 1;
       shader_prev = nullptr;
+      shader_print_mode = "xml";
     }
 
     void ReloadShaders(){
@@ -234,7 +247,7 @@ namespace ge {
     }
 
     void PrintShaders(){
-      for(auto shader : shaders) shader->Print();
+      for(auto shader : shaders) shader->Print( shader_print_mode );
     }
   
     void Tick(){
@@ -244,7 +257,8 @@ namespace ge {
       if( shaders.size() <= shaders_iter ) shaders_iter = 0;
       if( shaders_iter < 0 ) shaders.size() - 1;
       FrameShader* shader = shaders.at( shaders_iter );
-      if(shader_prev != shader) msg("ShaderStdin.Tick(): switch to ", shader->shader_name);
+      if(not shader) msg(__PFN__, "NULL shader at index", shaders_iter);
+      if(shader_prev != shader) msg(__PFN__, ": switch to ", shader->shader_name);
   
       if(sys::keyboard->Pressed(key::Q)) {dir *= -1; msg(dir);};
       float dvar = (0.1 + sys::keyboard->Holded(key::W) + 10*sys::keyboard->Holded(key::E)) * dir;
@@ -263,6 +277,7 @@ namespace ge {
       shader_prev = shader;
     }
     int shaders_iter, dir;
+    string shader_print_mode;
     vector<FrameShader*> shaders;
     FrameShader* shader_prev;
   };

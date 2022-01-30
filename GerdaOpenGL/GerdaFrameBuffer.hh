@@ -63,20 +63,20 @@ namespace ge {
         glBindTexture(GL_TEXTURE_2D, 0);
       }
 
-      void DrawQuad(const float & xd = -sys::FBW2, const float & yd = -sys::FBH2, const float & xu = sys::FBW2, const float & yu = sys::FBH2){
+      void DrawQuad(const float & xd = -sys::FBW2, const float & yd = -sys::FBH2, const float & xu = sys::FBW2, const float & yu = sys::FBH2, float z_level=0){
         glBegin(GL_QUADS);
-        glTexCoord2f(1, 	1);  glVertex3f( xu,  yu, 0.);
-        glTexCoord2f(0,   1);  glVertex3f( xd,  yu, 0.);
-        glTexCoord2f(0,   0);  glVertex3f( xd,  yd, 0.);
-        glTexCoord2f(1, 	0);  glVertex3f( xu,  yd, 0.);
+        glTexCoord2f(1, 	1);  glVertex3f( xu,  yu, z_level);
+        glTexCoord2f(0,   1);  glVertex3f( xd,  yu, z_level);
+        glTexCoord2f(0,   0);  glVertex3f( xd,  yd, z_level);
+        glTexCoord2f(1, 	0);  glVertex3f( xu,  yd, z_level);
         glEnd();
       }
 
-      void Draw(const float & xd = -sys::FBW2, const float & yd = -sys::FBH2, const float & xu = sys::FBW2, const float & yu = sys::FBH2){
+      void Draw(const float & xd = -sys::FBW2, const float & yd = -sys::FBH2, const float & xu = sys::FBW2, const float & yu = sys::FBH2, float z_level=0){
         /// Draw framebuffer rectangle, in most cases:
         /// 1) on the another framebuffer, than sizes are taken from sys::FBW, sys::FBH
         glBindTexture(GL_TEXTURE_2D, texture_id);
-        DrawQuad(xd, yd, xu, yu);
+        DrawQuad(xd, yd, xu, yu, z_level);
         glBindTexture(GL_TEXTURE_2D, 0);
       }
 
@@ -137,75 +137,6 @@ namespace ge {
 
     FrameBuffer *active, *back;
   };
-
-  // Texture to FB ==============
-  void draw_Text_to_FB(Texture * text, FrameBuffer * fb_target, FrameShader * shader=nullptr){
-    if(shader){
-      shader->Bind();
-      shader->UpdateUniforms();
-    }
-    fb_target->Target();
-    text->Draw(v2(), sys::FBV2);
-    fb_target->Untarget();
-    if(shader) shader->Unbind();
-  };
-
-  // FB to screen ==============
-  void draw_FB_to_Screen(FrameBuffer * fb, FrameShader * shader=nullptr){
-    if(shader){
-      shader->Bind();
-      shader->UpdateUniforms();
-    }
-    fb->BindTexture(0);
-    fb->DrawQuad(-sys::WW2, sys::WH2, sys::WW2, -sys::WH2);
-    fb->UnbindTexture(0);
-    if(shader) shader->Unbind();
-  }
-
-  // FB to FB ==============
-  void draw_FB_to_FB(FrameBuffer * fb, FrameBuffer * fb_target, FrameShader * shader=nullptr){
-    if(shader){
-      shader->Bind();
-      shader->UpdateUniforms();
-    }
-    fb_target->Target();
-    fb->BindTexture(0);
-    fb->DrawQuad();
-    fb->UnbindTexture(0);
-    fb_target->Untarget();
-    if(shader) shader->Unbind();
-  }
-
-  // FB+FB to FB ==============
-  void draw_2FB_to_FB(FrameBuffer * fb1, FrameBuffer * fb2, FrameBuffer * fb_target, FrameShader * shader=nullptr){
-    if(shader){
-      shader->Bind();
-      shader->UpdateUniforms();
-    }
-    fb_target->Target();
-    fb1->BindTexture(0);
-    fb2->BindTexture(1);
-    fb1->DrawQuad();
-    fb1->UnbindTexture(0);
-    fb2->UnbindTexture(1);  
-    glActiveTexture(GL_TEXTURE0);
-    fb_target->Untarget();
-    if(shader) shader->Unbind();
-  }
-
-  void draw_2FB_to_Screen(FrameBuffer * fb1, FrameBuffer * fb2, FrameShader * shader=nullptr){
-    if(shader){
-      shader->Bind();
-      shader->UpdateUniforms();
-    }
-    fb1->BindTexture(0);
-    fb2->BindTexture(1);
-    fb1->DrawQuad(-sys::WW2, sys::WH2, sys::WW2, -sys::WH2);
-    fb1->UnbindTexture(0);
-    fb2->UnbindTexture(1);  
-    glActiveTexture(GL_TEXTURE0);
-    if(shader) shader->Unbind();
-  }
 }
 
 #endif

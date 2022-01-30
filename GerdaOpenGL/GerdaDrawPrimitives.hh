@@ -91,7 +91,7 @@ namespace ge {
       }
 
       void Clean(){
-        for(int id = 0; id < max_quads_number; id++){
+        for(int id = 0, id_max = max_quads_number*sys::QUAD_ARRAY_SIZE; id < id_max; id+=sys::QUAD_ARRAY_SIZE){
           data[id+2]  = sys::PERSPECTIVE_EDGE;
           data[id+7]  = sys::PERSPECTIVE_EDGE;
           data[id+12] = sys::PERSPECTIVE_EDGE;
@@ -162,6 +162,18 @@ namespace ge {
         
         glEnable(GL_MULTISAMPLE);
         glDrawArrays(GL_QUADS, 0, max_quads_number * sys::QUAD_VERTEXES_NUMBER );
+      }
+
+      void Print(){
+        msg(__PFN__);
+        for(int i = 0; i < max_quads_number; i++){
+          if(data[i*sys::QUAD_ARRAY_SIZE+2] > sys::PERSPECTIVE_EDGE){
+            int id = i*sys::QUAD_ARRAY_SIZE;
+            msg( i ); 
+            for(int v = 0; v < 20; v+=5)
+              msg( "[(",data[id+0+v],data[id+1+v],data[id+2+v], "),(", data[id+3+v], data[id+4+v], ")]");
+          }
+        }
       }
 
       int max_quads_number, quads_number = 0;

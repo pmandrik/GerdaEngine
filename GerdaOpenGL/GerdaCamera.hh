@@ -76,10 +76,20 @@ namespace ge {
         glLoadMatrixf(modelMatrix);
       }
 
+      void LoadFBDefault(){
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(-sys::FBW2, sys::FBW2, -sys::FBH2, sys::FBH2, -buffer, buffer);  // ge::glViewport( 0, 0, sys::WW, sys::WH );
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glRotatef(angleZ, 0.f, 0.f, 1.f);
+      }
+
       void LoadDefault(){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(-sys::SW2, sys::SW2, -sys::SH2, sys::SH2, -buffer, buffer);
+        glOrtho(-sys::SW2, sys::SW2, -sys::SH2, sys::SH2, -buffer, buffer);  // ge::glViewport( 0, 0, sys::WW, sys::WH );
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
