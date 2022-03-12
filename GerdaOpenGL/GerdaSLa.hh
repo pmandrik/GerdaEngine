@@ -24,6 +24,7 @@ namespace ge {
     public:
     Texture * text;
     v2 text_pos = v2(), text_size = sys::FBV2;
+    float angle = 0;
 
     virtual void Tick(){
       if(shader){
@@ -31,7 +32,7 @@ namespace ge {
         shader->UpdateUniforms();
       }
       target->Target();
-      text->Draw( text_pos, text_size );
+      text->Draw( text_pos, text_size, v2(0., 0.),  v2(1., 1.),  0,  false,  false, angle );
       target->Untarget();
       if(shader) shader->Unbind(); 
     }

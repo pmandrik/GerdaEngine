@@ -57,15 +57,26 @@ namespace ge {
     inline void Bind()  { glBindTexture(GL_TEXTURE_2D, id); }
     inline void Unbind(){ glBindTexture(GL_TEXTURE_2D,  0); }
 
-    void Draw(v2 pos=sys::WV2, v2 size=sys::WV2, v2 tpos=v2(0., 0.), v2 tsize=v2(1., 1.), float z_pos=0, bool flip_x=false, bool flip_y=false){
+    void Draw(v2 pos=sys::WV2, v2 size=sys::WV2, v2 tpos=v2(0., 0.), v2 tsize=v2(1., 1.), float z_pos=0, bool flip_x=false, bool flip_y=false, const float & angle=0){
       if(flip_x) size.x *= -1;
       if(flip_y) size.y *= -1;
+
+      v2 perp = v2(-size.x, size.y);
+      size = size.Rotated(angle);
+      perp = perp.Rotated(angle);
+
       Bind();
       glBegin(GL_QUADS);
+      glTexCoord2f(tpos.x, 	tpos.y);                      glVertex3f(pos.x - size.x, pos.y - size.y, z_pos); 
+	    glTexCoord2f(tpos.x + tsize.x, 	tpos.y);            glVertex3f(pos.x - perp.x, pos.y - perp.y, z_pos);
+	    glTexCoord2f(tpos.x + tsize.x, 	tpos.y + tsize.y);  glVertex3f(pos.x + size.x, pos.y + size.y, z_pos);
+	    glTexCoord2f(tpos.x, 	tpos.y + tsize.y);            glVertex3f(pos.x + perp.x, pos.y + perp.y, z_pos);
+/*
       glTexCoord2f(tpos.x + tsize.x, 	tpos.y + tsize.y);  glVertex3f( pos.x + size.x, pos.y + size.y, z_pos);
       glTexCoord2f(tpos.x,            tpos.y + tsize.y);  glVertex3f( pos.x - size.x, pos.y + size.y, z_pos);
       glTexCoord2f(tpos.x,            tpos.y);            glVertex3f( pos.x - size.x, pos.y - size.y, z_pos);
       glTexCoord2f(tpos.x + tsize.x, 	tpos.y);            glVertex3f( pos.x + size.x, pos.y - size.y, z_pos);
+*/
       glEnd();
       Unbind();
     }
@@ -150,6 +161,7 @@ namespace ge {
     for( int x = 0; x < nx; x++ ) { 
       for( int y = 0; y < ny; y++ ) { 
         string key = text->GenerateAtlasName(name, x, y);
+        msg( key );
         text->AddTexTile(key, v2(start_x + border_width + dx * x, start_y + border_width + width_y + dy * y), v2(width_x, width_y));
       }
     }

@@ -145,20 +145,29 @@ namespace ge {
     }
 
     void Print(string format = "cpp"){
-      if( format == "cpp" ){
+      /// search for following substrings in format string:
+      /// "cpp", "xml" - as used in SLa
+      if( format.find("cpp") != string::npos ){
         msg( "//", shader_name );
         msg( "//", path_vert );
         msg( "//", path_frag );
         for(int i = 0; i < var_number; i++)
           msg("shader->vars[", i, "] =", vars[i], ";");
-      } else if ( format == "xml" ) {
+      } 
+      if ( format.find("xml") != string::npos ) {
         msg_nll( "<shader name=\"" + shader_name + "\"" );
         msg_nll( "vert=\"" + path_vert + "\"" );
         msg_nll( "frag=\"" + path_frag + "\"" );
         msg_nll( ">\n" );
         for(int i = 0; i < var_number; i++)
-          msg_nll( "<var value=\"" + to_string( vars[i] ) + "\">" );
+          msg_nll( "<var value=\"" + to_string( vars[i] ) + "\"/>" );
         msg_nll( "\n</shader>\n" );
+      }
+      if ( format.find("vector") != string::npos ) {
+        msg_nll( "vector<float> vars_" + shader_name + " = {" );
+        for(int i = 0; i < var_number; i++)
+          msg_nll( to_string( vars[i] ) + "," );
+        msg_nll( "};\n" );
       }
     }
 
@@ -239,7 +248,7 @@ namespace ge {
       shaders_iter = 0;
       dir = 1;
       shader_prev = nullptr;
-      shader_print_mode = "xml";
+      shader_print_mode = "xml,cpp,vector";
     }
 
     void ReloadShaders(){

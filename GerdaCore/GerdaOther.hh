@@ -13,15 +13,19 @@ namespace ge {
     inline void End(){Set(mtime);}
     inline void Reset(){ Set(0); }
     inline void ResetBack(){ Set(mtime-1); }
+
     bool Tick(int val=1){ 
-      itime += val; ftime += dtime*val;
       if(itime >= mtime){ Reset(); return true; }
       if(itime < 0){ ResetBack(); return true; }
+      itime += val; ftime += dtime*val;
       return false; 
     }
+
     bool TickIf(int val=1){
-      if(itime) return Tick(val);
-      return true;
+      if(itime >= mtime){ return false; }
+      if(itime < 0){ return false; }
+      itime += val; ftime += dtime*val;
+      return true; 
     }
 
     int mtime, itime;

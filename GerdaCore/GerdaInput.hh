@@ -4,7 +4,7 @@
 
 namespace ge {
 
-  // ======= Functions for load XML Tiled Map ====================================================================
+  // ======= IO operations ====================================================================
   // { std::make_pair<string, string> ("def:", "Data/default_shaders/") }
   string parse_gerda_db_path(const char * p, map<string,string> & path_db){
     /// check of Path alias is used in the string name
@@ -15,7 +15,7 @@ namespace ge {
     return path;
   }
 
-  // ======= Functions for load XML Tiled Map ====================================================================
+  // ======= some extra functions to work with XML using tinyxml ====================================================================
   static const long int MAGIC_TILED_NUMBER = 1073741824;
 
   void check_tinyxml_error(XMLError error, string start_msg = string("")){
@@ -35,18 +35,31 @@ namespace ge {
     }
   }
 
+  // Elements
+  /// get_xml_element_* return VALUE from first CHILD with name equal to "key" or "answer" if not found:
+  /// <MOTHER><CHILD>VALUE</CHILD></MOTHER>
   float get_xml_element_float(XMLElement* mother, string key, float answer){
     XMLElement* el = mother->FirstChildElement( key.c_str() );
     if(not el) return answer;
     return atof(el->GetText());
   }
 
-  float get_xml_element_int(XMLElement* mother, string key, int answer){
+  int get_xml_element_int(XMLElement* mother, string key, int answer){
     XMLElement* el = mother->FirstChildElement( key.c_str() );
     if(not el) return answer;
     return atoi(el->GetText());
   }
 
+  bool get_xml_element_bool(XMLElement* mother, string key, bool answer){
+    XMLElement* el = mother->FirstChildElement( key.c_str() );
+    if(not el) return answer;
+    string value_str = string( el->GetText() );
+    return bool_from_string( value_str, answer );
+  }
+
+  // Attributes
+  /// get_xml_attribute_* return VALUE from attribute with name equal to "attribute_key" or "answer" if not found:
+  /// <EL attribute_key="VALUE"/>
   float get_xml_attribute_float(XMLElement* el, string attribute_key, float answer){
     if(not el) return answer;
     const char * value = el->Attribute( attribute_key.c_str() );
@@ -54,11 +67,19 @@ namespace ge {
     return atof( value );
   }
 
-  float get_xml_attribute_int(XMLElement* el, string attribute_key, int answer){
+  int get_xml_attribute_int(XMLElement* el, string attribute_key, int answer){
     if(not el) return answer;
     const char * value = el->Attribute( attribute_key.c_str() );
     if(not value) return answer;
     return atoi( value );
+  }
+
+  bool get_xml_attribute_bool(XMLElement* el, string attribute_key, bool answer){
+    if(not el) return answer;
+    const char * value = el->Attribute( attribute_key.c_str() );
+    if(not value) return answer;
+    string value_str = string(value);
+    return bool_from_string( value_str, answer );
   }
 
   float get_xml_attribute_float(XMLElement* mother, string key, string attribute_key, float answer){
@@ -66,11 +87,12 @@ namespace ge {
     return get_xml_attribute_float(el, attribute_key, answer);
   }
 
-  float get_xml_attribute_int(XMLElement* mother, string key, string attribute_key, int answer){
+  int get_xml_attribute_int(XMLElement* mother, string key, string attribute_key, int answer){
     XMLElement* el = mother->FirstChildElement( key.c_str() );
     return get_xml_attribute_int(el, attribute_key, answer);
   }
 
+  // ======= Functions for load XML Tiled Map ====================================================================
   struct TiledMapObject {
     TiledMapObject(v2 p, v2 s, v2 f, string n, float a, int l, bool t = false, string gname = "") : pos(p), size(s), flip(f), name(n), angle(a), level(l), is_tile(t), group_name(gname) {};
 

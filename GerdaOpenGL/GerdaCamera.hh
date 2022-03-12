@@ -65,8 +65,8 @@ namespace ge {
         targets.push_back( CameraTarget(pos, time, zoom, normal) );
       }
 
-      v2 AbsToScreen(int x, int y){ return -to + v2(x - sys::WW2, -y + sys::WH2) * zoom; }
-      v2 AbsToScreen(v2 pos)      { return -to + v2(pos.x - sys::WW2, -pos.y + sys::WH2) * zoom; }
+      v2 AbsToScreen(int x, int y, bool flip_y = true){ return -to + v2(x - sys::WW2, (-y + sys::WH2) * (-1 + 2 * flip_y) ) * zoom; }
+      v2 AbsToScreen(v2 pos,       bool flip_y = true){ return -to + v2(pos.x - sys::WW2, (-pos.y + sys::WH2) * (-1 + 2 * flip_y) ) * zoom; }
 
       void ReTick(){
         glMatrixMode(GL_PROJECTION);
@@ -83,17 +83,15 @@ namespace ge {
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glRotatef(angleZ, 0.f, 0.f, 1.f);
       }
 
       void LoadDefault(){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(-sys::SW2, sys::SW2, -sys::SH2, sys::SH2, -buffer, buffer);  // ge::glViewport( 0, 0, sys::WW, sys::WH );
+        glOrtho(-sys::SW2, sys::SW2, sys::SH2, -sys::SH2, -buffer, buffer);  // ge::glViewport( 0, 0, sys::WW, sys::WH );
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glRotatef(angleZ, 0.f, 0.f, 1.f);
       }
 
       float GetPhi(){

@@ -215,6 +215,7 @@ class Sprite : public DrawableQuad {
       for( int y = 0; y < ny; y++ ) { 
         string key = text->GenerateAtlasName(name, x, y);
         TexTile * ttile = text->GetTexTile( key );
+        if(not ttile) msg( key );
         anim_line->Add( ttile, time );
       }
     }
