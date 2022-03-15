@@ -9,10 +9,10 @@ namespace ge {
     /// if GetTransitionScene()!="", then this Scene is changed to GetTransitionScene() and then to GetNextScene()
     /// Scene learns history using Scene * prev_scene
     public:
-    string state, def_next_scene_name, def_transition_scene_name;
+    string name, next_scene_name, transition_scene_name;
 
-    virtual string GetTransitionScene(){ return def_transition_scene_name; };
-    virtual string GetNextScene(){ return def_next_scene_name; };
+    virtual string GetTransitionScene(){ return transition_scene_name; };
+    virtual string GetNextScene(){ return next_scene_name; };
     virtual bool IsEnd(){ return false; }
     virtual void Tick() = 0;
     virtual bool IsTransition(){ return false; }
@@ -58,7 +58,7 @@ namespace ge {
           active_scene = next_scene;
         } else {
           transition_scene->prev_scene = active_scene;
-          transition_scene->def_next_scene_name = next_scene_name;
+          transition_scene->next_scene_name = next_scene_name;
           active_scene = transition_scene;
         }
       }

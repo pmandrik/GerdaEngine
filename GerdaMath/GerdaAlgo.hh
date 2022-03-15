@@ -5,9 +5,66 @@
 
 namespace ge {
   //------------------------------------------------------------------ INTERPOLATION ------------------------------------------------------------------
-  v2 interpolation_linear(const v2 & p1, const v2 & p2, const float & frac){
+  template<class A> A interpolation_linear(const A & p1, const A & p2, const float & frac){
     return p1 + (p2 - p1) * frac;
   }
+
+  template<class A> A interpolation_sin(const A & p1, const A & p2, const float & frac){
+    return p1 + (p2 - p1) * sin(PI2 * frac);
+  }
+
+  template<class A> A interpolation_pow2(const A & p1, const A & p2, const float & frac, const int pow_n = 2){
+    return p1 + (p2 - p1)  * pow(frac, pow_n);
+  }
+
+  struct VecInTime {
+    vector<float> vals;
+    float time;
+    VecInTime(float time_, vector<float> & vals_){
+      vals = vals_;
+      time = time_;
+    }
+  };
+
+  static int get_treshold_(const vector<VecInTime> & points, const float & time){
+    int treshold = 0;
+    for(;treshold < points.size(); treshold++)
+      if( time < points[treshold].time ) break;
+    return treshold;
+  };
+
+  vector<float> interpolation_algo(const vector<VecInTime> & points, float time, const string & algo){
+    if( not points.size() ) return vector<float>();
+    if( not points[0].vals.size() ) return vector<float>();
+    if( points.size() == 1 ) return points[0].vals;
+
+    //
+
+    // basic algos without extrapolations
+      if( time < points[0].time ) return points[0].vals;
+      if( time > points[points.size()-1].time ) return points[points.size()-1].vals;
+      int treshold = get_treshold_(points, time);
+      const VecInTime & p1 = points.at(treshold-1);
+      const VecInTime & p2 = points.at(treshold);
+      time = (time - p1.time) / (abs(p2.time - p1.time) + OSML);
+      vector<float> answer = vector<float>( p1.vals.size() );
+
+      if( algo == "linear" )
+        for(int i = 0, imax=p1.vals.size(); i < imax; ++i)
+          answer[i] = interpolation_linear(p1.vals[i], p2.vals[i], time);
+      if( algo == "sin" )
+        for(int i = 0, imax=p1.vals.size(); i < imax; ++i)
+          answer[i] = interpolation_sin(p1.vals[i], p2.vals[i], time);
+      if( algo.substr(0,3) == "pow" ){
+        string val = algo.substr(3,algo.size()-3);
+        char * pEnd;
+        int pow_n = max( (long int)1L, strtol(val.c_str(), &pEnd, 10) );  
+        for(int i = 0, imax=p1.vals.size(); i < imax; ++i)
+          answer[i] = interpolation_pow2(p1.vals[i], p2.vals[i], time, pow_n);
+      }
+
+      return answer;
+  };
 
   //------------------------------------------------------------------ INTERSECTIONS ------------------------------------------------------------------
   bool is_point_in_box(const v2 & point, const v2 & box_center, const v2 & box_size){

@@ -196,8 +196,10 @@ namespace ge {
 
     void ResetVars(){ for(int i = 0; i < 10; i++) vars[i] = vars_def[i]; }
     void ResetTime(){ time = time_def; }
-    void SetDefVars(const vector<float> & vars_v){ for(int i = 0; i < vars_v.size(); i++) vars[i] = vars_v.at(i); }
+    void SetDefVars(const vector<float> & vars_v){ for(int i = 0; i < vars_v.size(); i++) vars_def[i] = vars_v.at(i); }
     void SetDefTime(const float & t){ time_def = t; }
+    void SetVars(const vector<float> & vars_v){ for(int i = 0; i < vars_v.size(); i++) vars[i] = vars_v.at(i); }
+    void SetTime(const float & t){ time = t; }
 
     string GetVarName(const int & index){
       return "var_" + to_string(index) ;
@@ -241,8 +243,35 @@ namespace ge {
     return shader;
   }
 
-  // class to update shaders variables from keyboard
+  //=============================================================================================================
+  class ShaderInterpolation {
+    public:
+    /// simple class to update FrameShader vars based on Timer ftime variable 
+    map<string, vector<VecInTime> > items;
+    string algo = "pow1";
+
+    void Add(string name, float time, vector<float> vals){
+      auto points = items.find( name ); 
+      if( points == items.end() ){
+        items[ name ] = vector<VecInTime>();
+        points = items.find( name ); 
+      }
+
+      points->second.push_back( VecInTime(time, vals) );
+    }
+
+    bool UpdateShader(FrameShader * shader, float time){
+      auto points = items.find( shader->shader_name ); 
+      if( points == items.end() ) return false;
+      vector<float> values = interpolation_algo( points->second, time, algo );
+      shader->SetVars( values );
+      return true;
+    }
+  };
+
+  //=============================================================================================================
   class StdinShader{
+    /// class to update shaders variables from keyboard on the fly and dump shader states into console
     public:
     StdinShader(){
       shaders_iter = 0;
