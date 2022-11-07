@@ -1,0 +1,59 @@
+
+<sys screen_width="600" screen_height="600"/>
+
+<!-- alias -->
+<alias name="$path:" value="/home/me/my/project/GAME_ABOUT_FRIENDS/cola_dir/cola_3/"/>
+<alias name="$spath:" value="/home/me/my/project/GAME_ABOUT_FRIENDS/cola_dir/cola_3/"/>
+
+<alias name="$patha:" value="/home/me/my/project/GAME_ABOUT_FRIENDS/cola_dir/cola_4/"/>
+<alias name="$spatha:" value="/home/me/my/project/GAME_ABOUT_FRIENDS/cola_dir/cola_4/"/>
+
+<!-- sprites -->
+<image name="img_bck1" path="/home/me/my/project/GAME_ABOUT_FRIENDS/friends_dir/11.png"/>
+<image name="img_bck2" path="/home/me/my/project/GAME_ABOUT_FRIENDS/friends_dir/12.png"/>
+
+<!-- textures -->
+<texture name="t_bck1" image="img_bck1"/>
+<texture name="t_bck2" image="img_bck2"/>
+
+<!-- shaders -->
+<shader name="s1" vert="Data/default_shaders/shader_FB_def.vert" frag="/home/me/my/project/GAME_ABOUT_FRIENDS/friends_dir/shader_ff_00_0.frag" >
+ <var value="0.0000"/> <var value="0.0000"/> <var value="0.0000"/> <var value="0.00000"/> <var value="0.00000"/> 
+</shader>
+
+<shader name="s2" vert="Data/default_shaders/shader_FB_def.vert" frag="/home/me/my/project/GAME_ABOUT_FRIENDS/friends_dir/shader_ff_00_1.frag" >
+ <var value="0.800000"/> <var value="2.000000"/> <var value="3.399999"/> <var value="0.000000"/> <var value="0.000000"/> 
+</shader>
+
+<shader name="s3" vert="Data/default_shaders/shader_FB_def.vert" frag="/home/me/my/project/GAME_ABOUT_FRIENDS/friends_dir/shader_ff_00_2.frag" >
+<var value="0.800000"/> <var value="2.000000"/> <var value="-218.800049"/> <var value="0.000000"/> <var value="1560.000000"/> 
+</shader>
+
+<shader name="alpha" vert="Data/default_shaders/shader_FB_def.vert" frag="/home/me/my/project/GAME_ABOUT_FRIENDS/friends_dir/shader_ff_00_alpha.frag" >
+ <var value="0.100000"/> <var value="1.299992"/> <var value="0.700003"/> <var value="0.499991"/> <var value="-0.038190"/> <var value="0.900000"/> 
+</shader>
+
+<shader name="kill_alpha" vert="Data/default_shaders/shader_FB_def.vert" frag="Data/default_shaders/shader_kill_alpha.frag" >
+<var value="0.000000"/> <var value="0.099992"/> <var value="10.000002"/> <var value="12.800000"/> <var value="-4.600018"/> <var value="0.900000"/>
+</shader>
+
+<!-- SLa -->
+<SLaTexture name="SLaT_bck1" texture="t_bck1"/>
+
+<SLaFB name="SLaFB_1" shader="s1"/>
+<SLaFB name="SLaFB_2" shader="s3"/>
+<SLaFB name="SLaFB_3" shader="alpha"/>
+<SLaFB name="SLaFB_4" shader="kill_alpha"/>
+
+<SLaFBLoop name="SLaFBLoop_1" loops="1" shader="s2"/>
+<SLaFBLoop name="SLaFBLoop_2"><clean/></SLaFBLoop>
+
+<SLaAQD name="SLaAQD_1" texture="t_bck2" N_quads="10000" />
+
+<!-- chain -->
+<chain name="chain 0">
+  <relation value="SLaAQD_1->SLaFB_1->SLaFBLoop_1->SLaFB_3->SLaFB_4->screen,SLaT_bck1->SLaFB_2->screen"/>
+</chain>
+
+
+
