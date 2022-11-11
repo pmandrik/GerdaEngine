@@ -8,13 +8,13 @@ namespace ge {
   using namespace std;
   using namespace tinyxml2;
 
-  struct ConfigItem{
+  struct ConfigItem {
     /// Store data to create Gerda classes, something like:
     /// type, parameters -> item = new type(parameters['name1'], parameters['name2'], ... )
     /// item.field[0] = data['filed'][0] etc
     string type;
     map<string, string> attributes;
-    map<string, vector<string> > data;
+    map<string, vector< ConfigItem> > data;
     bool valid = true;
 
     bool Merge( ConfigItem & other ){
@@ -29,6 +29,10 @@ namespace ge {
 
     string GetAttribute(string name, string def = "") const {
       return pm::map_get( attributes, name, def );
+    }
+
+    vector<ConfigItem> GetData(string name) const {
+      return pm::map_get( data, name, vector<ConfigItem>() );
     }
 
     int GetAttributeI(string name, int def = 0) const {
@@ -47,7 +51,7 @@ namespace ge {
       attributes[ name ] = value;
     }
 
-    void AddData(string name, string value){
+    void AddData(string name, ConfigItem value){
       data[ name ].push_back( value );
     }
   };
@@ -65,6 +69,10 @@ namespace ge {
     map<string, string> type_vs_id;
     map< string, vector<ConfigItem> > items;
     ConfigItem sys;
+
+    protected:
+    map<string, vector<string> > load_attributes_req;
+    map<string, vector<string> > load_attributes_extra;
   
     public:
     vector<ConfigItem> & GetItems(std::string type){
@@ -93,10 +101,15 @@ namespace ge {
       items[ type ] = vector<ConfigItem>();
     }
 
+    void SetLoadAttributes( string name, vector<string> attrs, vector<string> attrs_extra = {} ){
+      load_attributes_req[ name ] = attrs;
+      load_attributes_extra[ name ] = attrs_extra;
+    }
+
     void ParseCFG(){ //FIXME move away from code
       /// Define specification to load Images, Textures, Shader etc
       /// and define attributes to load
-      LoadItems("sys", {}, {"screen_width", "screen_height", "image_imp"} );
+      LoadItems("sys", {}, {"screen_width", "screen_height", "image_imp", "shader_imp"} );
       if( items.find("sys") != items.end() ){   
         auto sys_items = items.find("sys")->second;
         if( sys_items.size() ) sys = sys_items[0];
@@ -104,17 +117,25 @@ namespace ge {
           sys.Merge( sys_items[1] );
       }
 
+      /// per Item we have many internal items with attributes defined by SetLoadAttributes
+      SetLoadAttributes( "var", {"value"}, {} );
+      SetLoadAttributes( "relation", {"value"}, {} );
+      SetLoadAttributes( "dqd", {"pos_x", "pos_y", "size_x", "size_y"}, {"tid", "tpos_x", "tpos_y", "tsize_x", "tsize_y", "angle", "flip_x", "flip_y"} );
+
       /// class Image, "name" - string id, "path" to local file
       LoadItems("image", {"id", "path"}, {"imp"} );
       /// class Texture, "name" - string id, "image" - id of image to use, "image_path" - load and create Image using this path if not loaded
       LoadItems("texture", {"id", "image_id"}, {"image_path", "image_imp"} );
       /// class Shader, "vert" - path to vertex shader, "frag" - path to fragment shader, "var" - shader parameters (floats)
-      LoadItems("shader", {"id", "vert", "frag"}, {} , {"var"});
+      LoadItems("shader", {"id", "vert", "frag"}, {"imp", "kind", "time"});
       /// class "drawer"
-      LoadItems("drawer", {"id", "texture_id", "imp"}, {"array_size"}, {});
+      LoadItems("drawer", {"id", "texture_id"}, {"imp", "array_size"});
       /// class "slaFB", "slaQD"
-      LoadItems("slaFB", {"id", "shader_id"}, {}, {});
-      LoadItems("slaQD", {"id", "drawer_id", "shader_id"}, {}, {});
+      LoadItems("slaFB", {"id"}, {"shader_id"});
+      LoadItems("slaQD", {"id", "drawer_id"}, {"shader_id"});
+      LoadItems("slaTD", {"id", "texture_id"}, {"shader_id"});
+      LoadItems("slaTD", {"id", "texture_id"}, {"shader_id"});
+      LoadItems("slaChain", {"id"}, {});
       
       /// init unic id attribute name used to check duplicates      
       type_vs_id["image"]  = "id";
@@ -125,7 +146,7 @@ namespace ge {
       CheckQuality();
     }
 
-    virtual void LoadItems(string name, vector<string> attributes, vector<string> attributes_extra = {}, vector<string> attributes_childs = {}){
+    virtual void LoadItems(string name, vector<string> attributes, vector<string> attributes_extra = {}){
       /// load items as SLaConfigItem from cfg, check mandatory attributes, extra attributes and one deep level attributes
     }
 
@@ -187,41 +208,45 @@ namespace ge {
       }
     }
 
-    void LoadItems(string name, vector<string> attributes, vector<string> attributes_extra = {}, vector<string> attributes_childs = {}){
-      /// Load Images from XML
+    ConfigItem LoadConfigItem( string name, vector<string> & attributes, vector<string> & attributes_extra, XMLElement * shaders_el ){
+      /// Load single Items pointed by XMLElement *
+      ConfigItem item;
+      item.type = name;
+
+      for(auto attr : attributes){
+        const char * value = shaders_el->Attribute( attr.c_str() );
+        if(not value) {
+          msg_err(__PFN__, "find " + name + " without \"" + attr + "\" Attribute");
+          item.valid = false;
+          continue;
+        } MSG_DEBUG(__PFN__, "find attribute", attr);
+        item.AddAttribute(attr, value);
+      }
+
+      for(auto attr : attributes_extra){
+        const char * value = shaders_el->Attribute( attr.c_str() );
+        if(not value) continue;
+        MSG_DEBUG(__PFN__, "find attribute", attr);
+        item.AddAttribute(attr, value);
+      }
+
+      return item;
+    }
+
+    void LoadItems( string name, vector<string> attributes, vector<string> attributes_extra = {} ){
+      /// Load Items from XML
       for(XMLElement* shaders_el = doc.FirstChildElement( name.c_str() ); shaders_el; shaders_el = shaders_el->NextSiblingElement( name.c_str() )){
-        ConfigItem item;
-        item.type = name;
+        ConfigItem item = LoadConfigItem( name, attributes, attributes_extra, shaders_el );
 
-        for(auto attr : attributes){
-          const char * value = shaders_el->Attribute( attr.c_str() );
-          if(not value) {
-            msg_err(__PFN__, "find " + name + " without \"" + attr + "\" Attribute");
-            item.valid = false;
-            continue;
-          } MSG_DEBUG(__PFN__, "find attribute", attr);
+        for( auto attr_req_iter : load_attributes_req ){
+          string attr = attr_req_iter.first;
+          vector<string> & attrs_req = attr_req_iter.second;
+          auto attr_extra_iter = load_attributes_extra.find( attr );
+          vector<string> & attrs_extra = attr_req_iter.second;
 
-          item.AddAttribute(attr, value);
-
-msg( attr );
-        }
-
-        for(auto attr : attributes_extra){
-          const char * value = shaders_el->Attribute( attr.c_str() );
-          if(not value) continue;
-          MSG_DEBUG(__PFN__, "find attribute", attr);
-          item.AddAttribute(attr, value);
-        }
-
-        for(auto attr : attributes_childs){
           for(XMLElement* var_el = shaders_el->FirstChildElement( attr.c_str() ); var_el; var_el = var_el->NextSiblingElement( attr.c_str() )){
-            const char * value = shaders_el->Attribute( "value" );
-            if(not value) {
-              msg_err(__PFN__, "find " + name + " without \"value\" in \"" + attr + "\" Attribute");
-              item.valid = false;
-              continue;
-            } MSG_DEBUG(__PFN__, "find attribute", attr);
-            item.AddData( attr, value );
+            ConfigItem item = LoadConfigItem( attr, attrs_req, attrs_extra, var_el );
+            item.AddData( attr, item );
           }
         }
 

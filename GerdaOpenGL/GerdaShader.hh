@@ -88,7 +88,7 @@ namespace ge {
       }
     }
 
-    virtual int GetUniform(const string & name){
+    virtual int GetUniform(const string name){
       first_run = false;
       map <string, int>::iterator it = uniforms.find(string(name));
       if(it == uniforms.end()){

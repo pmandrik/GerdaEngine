@@ -62,15 +62,20 @@ namespace ge {
 
     //================================================================================
     virtual std::shared_ptr<Image> CreateImage(string name, string path, string kind){
+      MSG_DEBUG(__PFN__, name, path, kind);
       /// CrateTYPE know how to create Image, Testure, Shader, QuadsDrawer
       std::shared_ptr<Image> image = std::make_shared<Image>();
-      if(kind == "" or kind=="STBI") image->image_implementation = std::unique_ptr<STBIImageImplementation>();
+      if(kind == "" or kind=="STBI") image->image_implementation = std::make_shared<STBIImageImplementation>();
       else{
         MSG_ERROR(__PFN__, "skip not-valid name", name, "of a kind", kind);
         throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a kind \"" + kind + "\"" );
       }
       image->name = name;
+      MSG_DEBUG(__PFN__, "LoadPNG call");
+      image->image_implementation->verbose_lvl = verbose_lvl;
       image->LoadPNG( path );
+      // image->LoadCheck();
+      MSG_DEBUG(__PFN__, "ok");
       return image;
     }
     
@@ -85,14 +90,18 @@ namespace ge {
       return txt;
     }
     
-    virtual std::shared_ptr<Shader> CreateShader(string name, std::string & vert, std::string & frag, string kind){
-      std::shared_ptr<Shader> obj = std::make_shared<Shader>( );
-      if(kind == "" or kind=="SLaShader") obj = std::make_shared<SLaShader>();
+    virtual std::shared_ptr<Shader> CreateShader(string name, std::string & vert, std::string & frag, string kind, string imp){
+      std::shared_ptr<Shader> obj;
+      if(kind == "" or kind=="SLa") obj = std::make_shared<SLaShader>();
       else{
         MSG_ERROR(__PFN__, "skip not-valid name", name, "of a kind", kind);
         throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a kind \"" + kind + "\"" );
       }
-      /// TODO
+      if(imp == "" or imp=="GL") obj->shader_imp = std::make_shared<ShaderGLImp>();
+      else{
+        MSG_ERROR(__PFN__, "skip not-valid name", name, "of a imp", kind);
+        throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a imp \"" + kind + "\"" );
+      }
       obj->Load( vert, frag );
       return obj;
     }
@@ -132,18 +141,16 @@ namespace ge {
     
     virtual void ImportTextureCfi(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
       string name = item.GetAttribute("id");
-      string image = item.GetAttribute("image_id");
+      string image_id = item.GetAttribute("image_id");
       string imp = item.GetAttribute("imp");
-        
       string image_path = item.GetAttribute("image_path");
       string image_imp  = get_from_configs( item, "image_imp", sys_item, "image_imp" );
       std::shared_ptr<Image> image_obj ;
-      if( image.size() ){
-        image_obj = CreateImage(image, image_path, image_imp);
-        dc->Add( image, image_obj );
-      } 
-      image_obj = dc->GetImage( image );
-      
+      if( image_path.size() ){
+        image_obj = CreateImage(image_id, image_path, image_imp);
+        dc->Add( image_id, image_obj );
+      }
+      image_obj = dc->GetImage( image_id );
       auto texture = CreateTexture(name, image_obj, imp);
       dc->Add( name, texture );
     }
@@ -161,9 +168,23 @@ namespace ge {
       string name = item.GetAttribute("id");
       string vert = item.GetAttribute("vert");
       string frag = item.GetAttribute("frag");
-      string imp = get_from_configs( item, "imp", sys_item, "shader_imp" );
-      auto obj = CreateShader(name, vert, frag, imp);
-      // dc->Add( name, obj );
+      string kind = item.GetAttribute("kind");
+      string imp  = get_from_configs( item, "imp", sys_item, "shader_imp" );
+      auto obj = CreateShader(name, vert, frag, kind, imp);
+
+      if(kind == "" or kind=="SLa"){
+        vector<ConfigItem> vars = item.GetData("var");
+        std::shared_ptr<SLaShader> sla_obj = std::dynamic_pointer_cast<SLaShader>(obj);
+        vector<float> vars_f;
+        for( auto var : vars )
+          vars_f.push_back( var.GetAttributeF( "value", 0.f ) );
+        sla_obj->SetDefVars( vars_f );
+
+        float def_time = item.GetAttributeF( "time", 0.f );
+        sla_obj->SetDefTime( def_time );
+      }
+
+      dc->Add( name, obj );
     }
     
     virtual void ImportSLaCfi(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
@@ -182,7 +203,7 @@ namespace ge {
     //================================================================================
     void ImportConfigItem(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
       /// ImportConfigItem call ImportTYPECfi based on ConfigItem type
-      if( not item.valid){
+      if( not item.valid ){
         MSG_WARNING( __PFN__, "skip not-valid item of type = ", item.type, "\nskip" );
         return;
       }
@@ -194,6 +215,9 @@ namespace ge {
         if( item.type == "shader" ) ImportShaderCfi( dc, item, sys_item );
         if( item.type == "drawer" ) ImportDrawerCfi( dc, item, sys_item );
         if( item.type == "slaFB" ) ImportSLaCfi( dc, item, sys_item );
+        if( item.type == "slaQD" ) ImportSLaCfi( dc, item, sys_item );
+        if( item.type == "slaFB" ) ImportSLaCfi( dc, item, sys_item );
+        if( item.type == "slaChain" ) ImportSLaCfi( dc, item, sys_item );
       } catch (std::invalid_argument const& ex) {
         MSG_ERROR( ex.what(), "\nskip" );
         return;
@@ -201,7 +225,7 @@ namespace ge {
     }
     
     //================================================================================
-    void ImportConfig(std::shared_ptr<DataContainer> dc, std::shared_ptr<Config> cfg){
+    void ImportConfig(std::shared_ptr<Config> cfg, std::shared_ptr<DataContainer> dc){
       /// ImportConfig create items defined in Config into DataContainer
       auto sys_item = cfg->GetSysItem();    
     
@@ -292,7 +316,10 @@ namespace ge {
       ((CoreSDL*)sys::core)->glcontext = glcontext;
 
       //
-      sys::file_input->read_text_files_imp = shared_ptr<ReadTxtFileImpSDL>();
+      sys::file_input->read_text_files_imp = std::make_shared<ReadTxtFileImpSDL>();
+
+      msg("init_gerda ... check GL errors:");
+      gl_check_error("...");
     } else {
       msg("Wrong parameter", kind, ", return false");
       return false;

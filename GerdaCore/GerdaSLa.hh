@@ -51,13 +51,16 @@ namespace ge{
     }
 
     void Reload(){
-      this->TurnOff();
+      // this->TurnOff();
       this->Load(path_vert, path_frag);
     }
 
     void ResetVars(){ for(int i = 0; i < 10; i++) vars[i] = vars_def[i]; }
     void ResetTime(){ time = time_def; }
-    void SetDefVars(const vector<float> & vars_v){ for(int i = 0; i < vars_v.size(); i++) vars_def[i] = vars_v.at(i); }
+    void SetDefVars(const vector<float> & vars_v){ 
+      for(int i = 0; i < vars_v.size(); i++) vars_def[i] = vars_v.at(i); 
+      var_number = vars_v.size();
+    }
     void SetDefTime(const float & t){ time_def = t; }
     void SetVars(const vector<float> & vars_v){ for(int i = 0; i < vars_v.size(); i++) vars[i] = vars_v.at(i); }
     void SetTime(const float & t){ time = t; }
@@ -90,6 +93,7 @@ namespace ge{
   enum sla {
     sla = 1,
     slaQD,
+    slaTD,
     slaFB,
   };
 
@@ -107,6 +111,19 @@ namespace ge{
     void SetTarget( std::shared_ptr<FrameBuffer> target_ ) { target = target_; }
     virtual std::shared_ptr<FrameBuffer> GetSource( std::vector<string> & arguments ) { return source; }
     virtual bool LoadArguments( std::vector<string> & arguments ){ return true; }
+  };
+
+  class SLaTD : public SLa {
+    /// to blit single (or part of) Texture + Shader
+    public:
+    SLaTD(string n, std::shared_ptr<SLaShader> s) : SLa(n, s) {}
+
+    shared_ptr<Texture> texture;
+    v2 DrawableQuadData;
+
+    virtual bool Init( ) { 
+      kind = sla::slaTD;
+    };
   };
   
   class SLaQD : public SLa {

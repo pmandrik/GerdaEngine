@@ -472,23 +472,24 @@ namespace ge {
     void UpdateUniform1f(const string id, const float val){ shader_imp->UpdateUniform1f(id, val); } 
     void UpdateUniformTexture(int index, const string id){ shader_imp->UpdateUniformTexture(index, id); } 
 
-    ~Shader(){ TurnOff(); }
-
-    void TurnOff(){ msg_err( "Shader TurnOff() not implemented" ); }
+    ~Shader(){}
 
     virtual void Load(string path_vert_, string path_frag_){
       path_vert = path_vert_;
       path_frag = path_frag_;
 
+      MSG_INFO( __PFN__, sys::file_input, path_vert, path_frag );
       string vert_txt = sys::file_input->read_text_files( path_vert );
       string frag_txt = sys::file_input->read_text_files( path_frag );
+
+      MSG_INFO( vert_txt );
+      MSG_INFO( frag_txt );
 
       ltrim(vert_txt);
       ltrim(frag_txt);
       rtrim(vert_txt);
       rtrim(frag_txt);
 
-      MSG_DEBUG( frag_txt );
       LoadFromStringVert( vert_txt );
       LoadFromStringFrag( frag_txt );
       CreateProgram();

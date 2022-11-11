@@ -12,8 +12,8 @@ int main(){
   init_gerda( "sdl", cfg );
 
   // import cfg  
-  sys::core_factory->verbose_lvl = pm::verbose::VERBOSE;
-  sys::core_factory->ImportConfig( sys::def_container, cfg );
+  sys::core_factory->verbose_lvl = pm::verbose::VERBOSE; 
+  sys::core_factory->ImportConfig( cfg, sys::def_container );
 
   bool game = true;
   msg("Loop ...");
@@ -21,6 +21,12 @@ int main(){
     tick_gerda();
     game = not check_exit();
     // sys::keyboard->Print();
+
+    auto text = sys::def_container->GetTexture("back");
+
+    // text->Bind();
+    // text->Draw( v2(), sys::SV2 );
+    // text->Unbind();
 
     sys::camera->Tick();
     sys::camera->Resize(sys::mouse->wheel);

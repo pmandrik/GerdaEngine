@@ -95,7 +95,7 @@ namespace ge {
     bool Add(const string & name, std::shared_ptr<TiledMapDrawer   > obj){ return Add(name, obj, tiled_map_drawers); }
     bool Add(const string & name, std::shared_ptr<ParticleSystem   > obj){ return Add(name, obj, particle_systems); }
     bool Add(const string & name, std::shared_ptr<Object > obj){ return Add(name, obj, players); }
-    bool AddX(const string & name, std::shared_ptr<Shader> obj){ return Add(name, obj, frame_shaders); }
+    bool Add(const string & name, std::shared_ptr<Shader> obj){ return Add(name, obj, frame_shaders); }
     bool Add(const string & name, std::shared_ptr<SLa > obj){ return Add(name, obj, slas); }
     bool Add(const string & name, std::shared_ptr<SLaChain > obj){ return Add(name, obj, sla_chains); }
     bool Add(const string & name, std::shared_ptr<QuadsDrawer > obj){ return Add(name, obj, quads_drawers); }    

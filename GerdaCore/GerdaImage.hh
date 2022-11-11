@@ -28,7 +28,7 @@ namespace ge {
       void *data;
       string name;
       int w,h,comp,type,format;
-      std::unique_ptr<ImageImplementation> image_implementation;
+      std::shared_ptr<ImageImplementation> image_implementation;
 
       Image(int width=0,int height=0,int comp_=4,int type_=0,int format_=0){ // comp=4 for RGBA
         w = width;
@@ -50,9 +50,11 @@ namespace ge {
       void LoadPNG( const string & file_name ){
         image_implementation->LoadPNG( this, file_name );
       }
+
       void WritePNG(const string & file_name){
         image_implementation->WritePNG( this, file_name );
       }
+
       void PrintPNG(const int & min_x, const int & min_y, const int & max_x, const int & max_y){
         int hh = min(h,min_y), ww = min(w, min_x);
         int hhh = min(h,max_y), www = min(w, max_x);
@@ -86,13 +88,16 @@ namespace ge {
   class STBIImageImplementation : public ImageImplementation {
     public:
       virtual void LoadPNG( Image * image, const string & file_name ){
-        int w = image->w;
-        int h = image->h;
-        int comp = image->comp;
+        int & w = image->w;
+        int & h = image->h;
+        int & comp = image->comp;
 
-        MSG_DEBUG("Image.LoadPNG(): try to load file ", file_name);
+        image->type   = GL_UNSIGNED_BYTE;
+        image->format = GL_RGBA;
+
+        MSG_DEBUG(__PFN__, "try to load file ", file_name);
         image->data   = stbi_load(file_name.c_str(), &w, &h, &comp, 0);
-        MSG_DEBUG("Image.LoadPNG(): ", file_name, "(",w,"x",h,")", image->comp, "ok");
+        MSG_DEBUG(__PFN__, file_name, "(",w,"x",h,")", image->comp, "ok");
 
         for(int y = 0; y < h; y++){
           for(int x = 0; x < w; x++){

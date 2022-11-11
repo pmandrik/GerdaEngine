@@ -23,12 +23,17 @@ namespace ge {
       image = img;
       w = image->w;
       h = image->h;
-      size = v2(w, h);
+      size = v2(w, h);        
+
+      int type   = image->format ? image->format : GL_UNSIGNED_INT;
+      int format = image->type ? image->type : GL_RGBA;
 
       Bind();
       glEnable(GL_TEXTURE_2D);
       // glTexStorage2D(GL_TEXTURE_2D, MIP_LEVELS_FIXME, GL_RGBA, w, h);
       // void glTexImage2D(target, level, internalFormat, width, height, border, format, type, data);
+      // msg( w, h, type, format, GL_FLOAT, GL_RGBA );
+      // for(int i = 0; i < 10; i++) msg( i, (int)((unsigned char*) (image->data))[ i ] );
       glTexImage2D_err(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, image->format, image->type, image->data);
       // void glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, const void *data);
       // glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, image->format, image->type, image->data);
