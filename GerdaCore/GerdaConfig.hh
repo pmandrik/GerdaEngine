@@ -17,6 +17,32 @@ namespace ge {
     map<string, vector< ConfigItem> > data;
     bool valid = true;
 
+    void Print( int n_tabs = 0 ) const {
+      string ntabs = string(n_tabs, ' ');
+      string ntabs2 = string(n_tabs+2, ' ');
+      msg(ntabs, __PFN__);
+      msg(ntabs,"attributes:");
+      for( auto iter : attributes )
+        msg(ntabs2, iter.first, iter.second );
+
+      msg(ntabs, "child data attributes:");
+      for( auto iter : data ){
+        msg(ntabs2, iter.first, ":");
+        for( auto item : iter.second ) item.Print( n_tabs + 2 );
+      }
+    }
+
+    /// Add Attribute & Data
+    void AddAttribute(string name, string value){
+      attributes[ name ] = value;
+    }
+
+    void AddData(string name, ConfigItem value){
+      data[ name ].push_back( value );
+msg("!!!");
+Print(10);
+    }
+
     bool Merge( ConfigItem & other ){
       for( auto iter = other.attributes.begin(); iter != other.attributes.end(); ++iter )
         AddAttribute( iter->first, iter->second );
@@ -27,12 +53,9 @@ namespace ge {
       }
     }
 
+    /// Get Attribute as string, int, float
     string GetAttribute(string name, string def = "") const {
       return pm::map_get( attributes, name, def );
-    }
-
-    vector<ConfigItem> GetData(string name) const {
-      return pm::map_get( data, name, vector<ConfigItem>() );
     }
 
     int GetAttributeI(string name, int def = 0) const {
@@ -47,12 +70,19 @@ namespace ge {
       return atof( attr.c_str() ); //FIXME
     }
 
-    void AddAttribute(string name, string value){
-      attributes[ name ] = value;
+    /// Get ConfigItem from Data
+    vector<ConfigItem> GetData(string name) const {
+      return pm::map_get( data, name, vector<ConfigItem>() );
     }
 
-    void AddData(string name, ConfigItem value){
-      data[ name ].push_back( value );
+    vector<string> GetVectorOverData(string name, string attr) const {
+      /// Get ConfigItem from Data
+      vector<string> answer;
+      vector<ConfigItem> rels = GetData( name );
+      for( auto rel : rels ){
+        answer.push_back( rel.GetAttribute( attr ) );
+      }
+      return answer;
     }
   };
 
@@ -94,10 +124,12 @@ namespace ge {
     }
 
     void AddItem( ConfigItem & item ){
+      MSG_DEBUG(__PFN__, "add item of type = ", item.type);
       items[ item.type ].push_back( item );
     }
 
     void RemoveItems( string type ){
+      MSG_DEBUG(__PFN__, "remove items of type = ", type);
       items[ type ] = vector<ConfigItem>();
     }
 
@@ -133,7 +165,6 @@ namespace ge {
       /// class "slaFB", "slaQD"
       LoadItems("slaFB", {"id"}, {"shader_id"});
       LoadItems("slaQD", {"id", "drawer_id"}, {"shader_id"});
-      LoadItems("slaTD", {"id", "texture_id"}, {"shader_id"});
       LoadItems("slaTD", {"id", "texture_id"}, {"shader_id"});
       LoadItems("slaChain", {"id"}, {});
       
@@ -235,6 +266,7 @@ namespace ge {
 
     void LoadItems( string name, vector<string> attributes, vector<string> attributes_extra = {} ){
       /// Load Items from XML
+      MSG_DEBUG(__PFN__, "load items of type", name);
       for(XMLElement* shaders_el = doc.FirstChildElement( name.c_str() ); shaders_el; shaders_el = shaders_el->NextSiblingElement( name.c_str() )){
         ConfigItem item = LoadConfigItem( name, attributes, attributes_extra, shaders_el );
 
@@ -242,11 +274,13 @@ namespace ge {
           string attr = attr_req_iter.first;
           vector<string> & attrs_req = attr_req_iter.second;
           auto attr_extra_iter = load_attributes_extra.find( attr );
-          vector<string> & attrs_extra = attr_req_iter.second;
+          vector<string> & attrs_extra = attr_extra_iter->second;
 
           for(XMLElement* var_el = shaders_el->FirstChildElement( attr.c_str() ); var_el; var_el = var_el->NextSiblingElement( attr.c_str() )){
-            ConfigItem item = LoadConfigItem( attr, attrs_req, attrs_extra, var_el );
-            item.AddData( attr, item );
+            MSG_DEBUG(__PFN__, "found child element", attr);
+            ConfigItem child_item = LoadConfigItem( attr, attrs_req, attrs_extra, var_el );
+            MSG_DEBUG(__PFN__, "add child element", attr);
+            item.AddData( attr, child_item );
           }
         }
 

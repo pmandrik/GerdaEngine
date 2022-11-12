@@ -17,6 +17,7 @@ namespace ge {
   class Image;
   class Camera;
   class FileInput;
+  class TexTile;
 
   namespace sys{
     // ======= SYSTEM CFG ====================================================================
@@ -108,6 +109,7 @@ namespace ge {
     Core        * core;
     Camera      * camera;
     FileInput   * file_input;
+    TexTile     * def_textile;
   };
   
   // ======= MOUSE ====================================================================
@@ -213,8 +215,9 @@ namespace ge {
 #include "GerdaXML.hh"
 #include "GerdaDataContainer.hh"
 #include "GerdaImage.hh"
-#include "GerdaDraw.hh"
+#include "GerdaDrawPrimitives.hh"
 #include "GerdaSLa.hh"
+#include "GerdaDraw.hh"
 #include "GerdaConfig.hh"
 
 #endif

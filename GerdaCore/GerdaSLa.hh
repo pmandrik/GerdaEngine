@@ -83,6 +83,10 @@ namespace ge{
       }
     }
 
+    void SetupDraw(){
+      UpdateUniforms();
+    }
+
     float time, time_def;
     float vars[10], vars_def[10];
     int var_number, text_number;
@@ -111,17 +115,28 @@ namespace ge{
     void SetTarget( std::shared_ptr<FrameBuffer> target_ ) { target = target_; }
     virtual std::shared_ptr<FrameBuffer> GetSource( std::vector<string> & arguments ) { return source; }
     virtual bool LoadArguments( std::vector<string> & arguments ){ return true; }
+    virtual void Tick(){ msg("SLa TICK");};
+    virtual void Clean(){};
+
+    bool on = true;
+    bool clean = false;
+    bool once  = false;
   };
 
   class SLaTD : public SLa {
     /// to blit single (or part of) Texture + Shader
     public:
-    SLaTD(string n, std::shared_ptr<SLaShader> s) : SLa(n, s) {}
+    SLaTD(string n, std::shared_ptr<SLaShader> s, shared_ptr<Texture> t, DrawableQuadData dqd_) : SLa(n, s) { texture = t ; dqd = dqd_; }
 
     shared_ptr<Texture> texture;
-    v2 DrawableQuadData;
+    DrawableQuadData dqd;
 
-    virtual bool Init( ) { 
+    void Tick(){
+msg("TD TICK");
+      draw_texture_to_fb_or_screen( dqd, texture, target, shader );
+    }
+
+    void Init() { 
       kind = sla::slaTD;
     };
   };
@@ -129,12 +144,11 @@ namespace ge{
   class SLaQD : public SLa {
     /// to blit array of quads with texture using QuadsDrawer + Shader
     public:
-    SLaQD(string n, std::shared_ptr<SLaShader> s) : SLa(n, s) {}
+    SLaQD(string n, std::shared_ptr<SLaShader> s, std::shared_ptr<QuadsDrawer> drawer_ ) : SLa(n, s) { drawer = drawer_; }
 
     std::shared_ptr<QuadsDrawer> drawer;
     
-    void Init( std::shared_ptr<QuadsDrawer> drawer_ ){
-      drawer = drawer_;
+    void Init(){
       kind = sla::slaQD;
     };
   };
@@ -158,6 +172,10 @@ namespace ge{
   
   class SLaChain : public BaseClass {
     public:
+    SLaChain( string name_ ){
+      name = name_;
+    }
+
     std::vector< std::shared_ptr<SLa> > slas ;
     std::vector< std::pair<SLaChainLink, SLaChainLink > > links;
     
@@ -196,7 +214,39 @@ namespace ge{
 
     void AddRelation(string src, string tgt){
       MSG_DEBUG( __PFN__, src, "&", tgt );
-      links.push_back( make_pair(ParceRelation(src), ParceRelation(tgt)));
+      links.push_back( make_pair(ParceRelation(src), ParceRelation(tgt)) );
+    }
+
+    void AddRawRelation(string relation){
+      /// expect input as "A->B->C,D->E,E->C"
+      /// at first split into "A->B->C", "D->E", "E->C"
+      std::vector<std::string> value_cpp_parts;
+      pm::split_string_strip(relation, value_cpp_parts, ",");
+      if( not value_cpp_parts.size() ){
+        msg_err(__PFN__, "skip empty relation");
+        return;
+      } MSG_DEBUG(__PFN__, "find relation with N parts = ", value_cpp_parts.size());
+
+      /// then split "A->B->C" split into "A", "B", "C"
+      /// and add relations as AddRelation("A","B"), AddRelation("B","C")
+      for(auto value_cpp_part : value_cpp_parts){
+        std::vector<std::string> conn_parts;
+        pm::split_string_strip(value_cpp_part, conn_parts, "->");
+        if( conn_parts.size() < 2 ){
+          msg_err(__PFN__, "skip relation without \"->\" separated parts");
+          continue;
+        } MSG_DEBUG(__PFN__, "find relation with N in connection = ", conn_parts.size());
+
+        for(int i = 0; i < conn_parts.size()-1; ++i){
+          string src = conn_parts[i];
+          string tgt = conn_parts[i+1];
+          AddRelation( src , tgt );
+        }
+      }
+    }
+
+    void AddRawRelations( vector<string> & relations ){
+      for( auto rel : relations ) AddRawRelation( rel );
     }
 
     /*
@@ -241,6 +291,7 @@ namespace ge{
         }
 
         if( links[i].second.name == "screen"){
+          slas.push_back( src );
           continue;
         }
 

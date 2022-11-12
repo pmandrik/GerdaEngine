@@ -12,7 +12,7 @@
 </shader>
 
 <!-- SLa -->
-<slaTD id="sla_back" texture_id="back" shader_id="shader_c_back" />
+<slaTD id="sla_back" texture_id="back"  />
 
 <slaChain id="chain">
   <relation value="sla_back->screen"/>

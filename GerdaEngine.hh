@@ -125,12 +125,51 @@ namespace ge {
     }
 
     virtual std::shared_ptr<SLaQD> CreateSLaQD(string id, std::shared_ptr<QuadsDrawer> drawer, std::shared_ptr<SLaShader> shader){
-      std::shared_ptr<SLaQD> obj = std::make_shared<SLaQD>( id, shader );
-      obj->Init( drawer );
+      std::shared_ptr<SLaQD> obj = std::make_shared<SLaQD>( id, shader, drawer );
+      obj->Init( );
       return obj;
     }
+
+    virtual std::shared_ptr<SLaTD> CreateSLaTD(string id, std::shared_ptr<Texture> texture, std::shared_ptr<SLaShader> shader, DrawableQuadData dqd){
+      MSG_DEBUG(__PFN__, id, texture, shader, dqd.pos, dqd.size);
+      std::shared_ptr<SLaTD> obj = std::make_shared<SLaTD>( id, shader, texture, dqd );
+      obj->Init();
+      return obj;
+    }
+
+    virtual std::shared_ptr<SLaChain> CreateSLaChain(string id, vector<string> & relations){
+      MSG_DEBUG(__PFN__, id, " relations.size() = ", relations.size() );
+      std::shared_ptr<SLaChain> obj = std::make_shared<SLaChain>( id );
+      obj->AddRawRelations( relations );
+      return obj;
+    }
+
+    /// CreateTYPECfi convert ConfigItem data into TYPE object and return this object
+    virtual DrawableQuadData CreateDQDCfi( const ConfigItem & item, shared_ptr<Texture> texture ){
+      // "dqd", {"pos_x", "pos_y", "size_x", "size_y"}, {"tid", "tpos_x", "tpos_y", "tsize_x", "tsize_y", "angle", "flip_x", "flip_y"} );
+      float pos_x = item.GetAttributeF("pos_x");
+      float pos_y = item.GetAttributeF("pos_y");
+      float size_x = item.GetAttributeF("size_x");
+      float size_y = item.GetAttributeF("size_y");
+
+      string tid = item.GetAttribute("tid");
+      float tpos_x = item.GetAttributeF("tpos_x", 0.f);
+      float tpos_y = item.GetAttributeF("tpos_y", 0.f);
+      float tsize_x = item.GetAttributeF("tsize_x", 1.f);
+      float tsize_y = item.GetAttributeF("tsize_y", 1.f);
+
+      float angle = item.GetAttributeF("angle");
+      int flip_x = item.GetAttributeI("flip_x");
+      int flip_y = item.GetAttributeI("flip_y");
+
+      TexTile * ttile = nullptr;
+      if( tid.size() ) ttile = texture->GetTexTile( tid );
+      if( not ttile  ) ttile = sys::def_textile;
+
+      return DrawableQuadData( v2(pos_x, pos_y), v2(size_x, size_y), v2(flip_x, flip_y), angle, ttile );
+    }
     
-    /// ImportTYPECfi convert ConfigItem data into TYPE object
+    /// ImportTYPECfi convert ConfigItem data into TYPE object and add this object into DataContainer
     virtual void ImportImageCfi(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
       string name = item.GetAttribute("id");
       string path = item.GetAttribute("path");
@@ -189,35 +228,54 @@ namespace ge {
     
     virtual void ImportSLaCfi(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
       string id = item.GetAttribute("id");
-      string shader_id = item.GetAttribute("shader_id", "");
-      string drawer_id = item.GetAttribute("drawer_id", "");
-      std::shared_ptr<ge::Shader> shader = dc->GetShader( shader_id );
-      std::shared_ptr<ge::SLaShader>  frame_shader = std::dynamic_pointer_cast<ge::SLaShader>( shader );
-      std::shared_ptr<QuadsDrawer> drawer = dc->GetQuadsDrawer( drawer_id );
       shared_ptr<SLa> obj;
-      if( item.type == "slaFB" ) obj = CreateSLaFB(id, frame_shader);
-      if( item.type == "slaQD" ) obj = CreateSLaQD(id, drawer, frame_shader);
+      // if( item.type == "slaFB" ) obj = CreateSLaFB(id, frame_shader);
+      // if( item.type == "slaQD" ) obj = CreateSLaQD(id, drawer, frame_shader);
+      if( item.type == "slaTD" ){
+        string shader_id = item.GetAttribute("shader_id", "");
+        string drawer_id = item.GetAttribute("drawer_id", "");
+        string texture_id = item.GetAttribute("texture_id", "");
+        std::shared_ptr<ge::Shader> shader = dc->GetShader( shader_id );
+        std::shared_ptr<ge::SLaShader>  frame_shader = std::dynamic_pointer_cast<ge::SLaShader>( shader );
+        std::shared_ptr<Texture> texture = dc->GetTexture( texture_id );
+
+        DrawableQuadData dqd = DrawableQuadData( v2(0, 0), sys::FBV2, v2(0, 0), 0, sys::def_textile );
+        vector<ConfigItem> dqd_cfg_items = item.GetData("dqd");
+        if( dqd_cfg_items.size() ) dqd = CreateDQDCfi(dqd_cfg_items[0], texture);
+
+        obj = CreateSLaTD(id, texture, frame_shader, dqd);
+      }
       if(obj) dc->Add( id, obj );
+    }
+
+    virtual void ImportSLaChainCfi(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
+      string id = item.GetAttribute("id");
+      item.Print();
+      vector<string> relations = item.GetVectorOverData("relation", "value");
+      std::shared_ptr<SLaChain> obj = CreateSLaChain( id, relations );
+msg( obj->links.size(), " = obj->links.size()");
+      obj->Init( dc );
+msg( obj->slas.size(), " = obj->slas.size()");
+      dc->Add( id, obj );
     }
     
     //================================================================================
     void ImportConfigItem(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
       /// ImportConfigItem call ImportTYPECfi based on ConfigItem type
+      MSG_DEBUG( __PFN__, "process", item.type );
       if( not item.valid ){
         MSG_WARNING( __PFN__, "skip not-valid item of type = ", item.type, "\nskip" );
         return;
       }
-      
       try{
-        MSG_DEBUG( __PFN__, "process", item.type );
         if( item.type == "image" ) ImportImageCfi( dc, item, sys_item );
         if( item.type == "texture" ) ImportTextureCfi( dc, item, sys_item );
         if( item.type == "shader" ) ImportShaderCfi( dc, item, sys_item );
         if( item.type == "drawer" ) ImportDrawerCfi( dc, item, sys_item );
         if( item.type == "slaFB" ) ImportSLaCfi( dc, item, sys_item );
         if( item.type == "slaQD" ) ImportSLaCfi( dc, item, sys_item );
-        if( item.type == "slaFB" ) ImportSLaCfi( dc, item, sys_item );
-        if( item.type == "slaChain" ) ImportSLaCfi( dc, item, sys_item );
+        if( item.type == "slaTD" ) ImportSLaCfi( dc, item, sys_item );
+        if( item.type == "slaChain" ) ImportSLaChainCfi( dc, item, sys_item );
       } catch (std::invalid_argument const& ex) {
         MSG_ERROR( ex.what(), "\nskip" );
         return;
@@ -229,7 +287,7 @@ namespace ge {
       /// ImportConfig create items defined in Config into DataContainer
       auto sys_item = cfg->GetSysItem();    
     
-      vector<string> types_for_importcfg = { "image", "texture", "shader", "drawer", "slaFB" };
+      vector<string> types_for_importcfg = { "image", "texture", "shader", "drawer", "slaFB", "slaQD", "slaTD", "slaChain" };
       for( auto type : types_for_importcfg ){
         auto items = cfg->GetItems( type );
         for(auto item : items)
@@ -248,6 +306,7 @@ namespace ge {
     sys::mouse        = new Mouse();
     sys::keyboard     = new Keyboard();
     sys::file_input   = new FileInput();
+    sys::def_textile  = new TexTile( v2(0,0), v2(1,1) );
     sys::core_factory  = make_shared<CoreFactory>();
     sys::def_container = make_shared<DataContainer>();
 

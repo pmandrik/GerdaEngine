@@ -8,10 +8,10 @@ namespace ge {
   using namespace std;
   using namespace tinyxml2;
 
-  class FrameBuffer : public BaseClass {
+  class FrameBufferGL : public FrameBuffer {
     /// OpenGL frame buffer class wrapper = texture + depth buffer stored at GPU and with fast GPU access
     public :
-      FrameBuffer(){
+      FrameBufferGL(){
         // Texture
         glEnable(GL_TEXTURE_2D);
         glActiveTexture(GL_TEXTURE0);
@@ -122,7 +122,7 @@ namespace ge {
     void UntargetActive(){ active->Untarget(); }
     void ClearActive(){    active->Clear();    }
     void DrawActive(){     active->Draw();     }
-    void DrawActiveOnWindow(const bool & mirror_x=false, const bool & mirror_y=false){ active->DrawOnWindow(mirror_x, mirror_y);     }
+    void DrawActiveOnScreen(const bool & mirror_x=false, const bool & mirror_y=false){ active->DrawOnScreen(mirror_x, mirror_y);     }
     void DrawTexture(Texture * text){
       TargetActive();
       text->Draw(v2(), sys::FBV2);

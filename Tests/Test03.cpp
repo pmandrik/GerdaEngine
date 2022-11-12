@@ -15,8 +15,12 @@ int main(){
   sys::core_factory->verbose_lvl = pm::verbose::VERBOSE; 
   sys::core_factory->ImportConfig( cfg, sys::def_container );
 
+  auto dr = new DrawRealm();
+  auto ch = sys::def_container->GetSLaChain("chain");
+  dr->AddChain( sys::def_container->GetSLaChain("chain") );
+
   bool game = true;
-  msg("Loop ...");
+  msg("Loop ...", ch );
   while( game ){
     tick_gerda();
     game = not check_exit();
@@ -27,6 +31,9 @@ int main(){
     // text->Bind();
     // text->Draw( v2(), sys::SV2 );
     // text->Unbind();
+
+    msg("dr Tick", dr);
+    dr->Tick();
 
     sys::camera->Tick();
     sys::camera->Resize(sys::mouse->wheel);
