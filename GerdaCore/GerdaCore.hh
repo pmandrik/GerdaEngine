@@ -83,7 +83,7 @@ namespace ge {
     int     screenshoot_sec = 0;
     Image * screenshoot_image;
     Timer * screenshoot_timer;
-    string * screnshoot_prefix = new string("gs_");
+    string  screnshoot_prefix = "screnshoot";
 
     // ======= SHADERS
     string default_shader_vert_path = "Data/default_shaders/shader_FB_def.vert";
@@ -129,6 +129,14 @@ namespace ge {
       bool left_hold, right_hold, middle_hold;
       bool left_down, right_down, middle_down;
       bool left_up,   right_up,   middle_up;
+      
+      void Print(){
+        msg(__PFN__);
+        msg("x, y, wheel = ", x, y, wheel );
+        msg("left_hold, right_hold, middle_hold = ", left_hold, right_hold, middle_hold );
+        msg("left_down, right_down, middle_down = ", left_down, right_down, middle_down );
+        msg("left_up,   right_up,   middle_up = ", left_up,   right_up,   middle_up );
+      }
   };
 
   ostream & operator << (ostream & out, const Mouse & m){
@@ -188,6 +196,91 @@ namespace ge {
       bool keyboard_pressed[232], keyboard_holded[232], keyboard_raised[232];
   };
 
+  // ======= CAMERA ====================================================================
+  struct CameraTarget{
+    CameraTarget() : pos(0), time(0), zoom(0), normal(0), max_time(1)  {}
+    CameraTarget(v2 p, int t, float z, v2 n) : pos(p), time(t), zoom(z), normal(n), max_time(t)  {}
+
+    void Tick( float mval ){
+      float val = mval * (time / (float) max_time);
+      pos *= val;
+      zoom *= val;
+      normal *= val;
+      time = max(0, time-1);
+    }
+
+    v2 pos;
+    int time;
+    int max_time;
+    float zoom;
+    v2 normal;
+  };
+
+  class Camera {
+    public:
+      inline void Resize( const int & r){ zoom = max(0.000000001, zoom - 0.1*r*zoom); }
+      inline void ResetZoom(){ zoom = 1.; }
+      void Reset(){
+        to = v2(0, 0, 0);
+        from = v2(0, 0, 1);
+        normal = v2(0, 1, 0);
+        zoom = 1;
+        buffer = sys::z_buffer;
+        pause = true;
+        smooth = false;
+        angleZ = 0.;
+      }
+
+      void SetTarget(v2 target){
+        to.Set(target);
+        from.Set(target);
+      }
+
+      void SetTarget(v2 target, float z, v2 norm){
+        SetTarget(target);
+        zoom = z;
+        normal = norm;
+      }
+
+      void Move(v2 shift){
+        to += shift;
+        from += shift;
+      }
+
+      void PushPoint(v2 pos, int time, float zoom, v2 normal = v2(0,1)){
+        targets.push_back( CameraTarget(pos, time, zoom, normal) );
+      }
+
+      v2 AbsToScreen(int x, int y, bool flip_y = true){ return -to + v2(x - sys::WW2, (-y + sys::WH2) * (-1 + 2 * flip_y) ) * zoom; }
+      v2 AbsToScreen(v2 pos,       bool flip_y = true){ return -to + v2(pos.x - sys::WW2, (-pos.y + sys::WH2) * (-1 + 2 * flip_y) ) * zoom; }
+
+      float GetPhi(){
+        return normal.Angle();
+      }
+
+      void Print(){
+        msg(to, zoom, normal);
+      }
+
+      bool Finished(){
+        return not targets.size();
+      }
+
+      virtual void ReTick(){}
+
+      virtual void LoadFBDefault(){}
+
+      virtual void LoadDefault(){}
+
+      virtual void Tick(){}
+
+    v2 to, from, normal; 
+    CameraTarget inertia;
+    float zoom, buffer, angleZ;
+    vector<CameraTarget> targets;
+    bool pause, smooth;
+  };
+
   // ======= File Input ====================================================================
   class ReadTxtFileImp {
     public:
@@ -208,8 +301,10 @@ namespace ge {
   class Core : public BaseClass {
     public:
     virtual void Tick(){ msg("do nothing"); }
+    virtual void ClearScreen(){ msg("clear screen here"); };
+    bool clear_screen = true;
   };
-
+  
 }
 
 #include "GerdaXML.hh"
@@ -219,6 +314,7 @@ namespace ge {
 #include "GerdaSLa.hh"
 #include "GerdaDraw.hh"
 #include "GerdaConfig.hh"
+#include "GerdaDevelopment.hh"
 
 #endif
 

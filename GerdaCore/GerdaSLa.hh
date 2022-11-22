@@ -11,7 +11,6 @@ namespace ge{
   class FrameBuffer;
 
   // ==================================================================== SLa shader
-
   class SLaShader : public Shader {
     /// special case of shader with up to 3 textures and up to 10 variables + 'time'
     public:
@@ -91,7 +90,6 @@ namespace ge{
     float vars[10], vars_def[10];
     int var_number, text_number;
   };
-
   
   // ==================================================================== SLa
   enum sla {
@@ -112,11 +110,13 @@ namespace ge{
 
     SLa( int a ) {}
     SLa(string n, std::shared_ptr<SLaShader> s) : name(n), shader(s) {}
-    void SetTarget( std::shared_ptr<FrameBuffer> target_ ) { target = target_; }
+    virtual void SetTarget( std::shared_ptr<FrameBuffer> target_ ) { target = target_; }
+    virtual void SetSource( std::shared_ptr<FrameBuffer> source_ ) { source = source_; }
     virtual std::shared_ptr<FrameBuffer> GetSource( std::vector<string> & arguments ) { return source; }
     virtual bool LoadArguments( std::vector<string> & arguments ){ return true; }
     virtual void Tick(){ msg("SLa TICK");};
     virtual void Clean(){};
+    virtual bool Init(){ return true; };
 
     bool on = true;
     bool clean = false;
@@ -132,13 +132,8 @@ namespace ge{
     DrawableQuadData dqd;
 
     void Tick(){
-msg("TD TICK");
       draw_texture_to_fb_or_screen( dqd, texture, target, shader );
     }
-
-    void Init() { 
-      kind = sla::slaTD;
-    };
   };
   
   class SLaQD : public SLa {
@@ -147,21 +142,43 @@ msg("TD TICK");
     SLaQD(string n, std::shared_ptr<SLaShader> s, std::shared_ptr<QuadsDrawer> drawer_ ) : SLa(n, s) { drawer = drawer_; }
 
     std::shared_ptr<QuadsDrawer> drawer;
-    
-    void Init(){
-      kind = sla::slaQD;
-    };
   };
   
   class SLaFB : public SLa {
     /// to blit FrameBuffer + Shader
     public:
-    SLaFB(string n, std::shared_ptr<SLaShader> s) : SLa(n, s) {}
+    SLaFB( string n, std::shared_ptr<SLaShader> s ) : SLa(n, s) {}
 
-    virtual bool Init( ) { 
-      kind = sla::slaFB;
-    };
+    void Tick(){
+      draw_fb_to_fb_or_screen( source, target, shader );
+    }
   };
+
+  class SLaFBLoop : public SLa {
+    /// to blit FB applying shader multiple times
+    public:
+    SLaFBLoop( string n, std::shared_ptr<SLaShader> s ) : SLa(n, s) {}
+    std::shared_ptr<FrameBuffer> buffer;
+
+    bool clean_buffer = true;
+    int loops = 1;
+
+    virtual void Tick(){
+      if(loops <= 1){
+        draw_fb_to_fb_or_screen( source, target, shader );
+        return;
+      }
+
+      for(int counter = 1; counter < loops; counter++){
+        if(counter % 2) draw_fb_to_fb_or_screen( source, buffer, shader );
+        else            draw_fb_to_fb_or_screen( buffer, source, shader );
+      }
+      if(loops%2==0) swap(source, buffer);
+      draw_fb_to_fb_or_screen( source, target, shader ); 
+      if( clean_buffer ) buffer->Clean();
+    }
+  };
+
   
   // ==================================================================== sla chain
   struct SLaChainLink{

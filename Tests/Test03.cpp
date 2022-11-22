@@ -9,7 +9,7 @@ int main(){
   shared_ptr<XMLConfig> cfg = make_shared<XMLConfig>( "Data/sla_test03.xml" );
 
   // init gerda
-  init_gerda( "sdl", cfg );
+  init_gerda( cfg );
 
   // import cfg  
   sys::core_factory->verbose_lvl = pm::verbose::VERBOSE; 
@@ -18,6 +18,8 @@ int main(){
   auto dr = new DrawRealm();
   auto ch = sys::def_container->GetSLaChain("chain");
   dr->AddChain( sys::def_container->GetSLaChain("chain") );
+  
+  ShaderStdin std ( sys::def_container->GetShaders() );
 
   bool game = true;
   msg("Loop ...", ch );
@@ -25,18 +27,26 @@ int main(){
     tick_gerda();
     game = not check_exit();
     // sys::keyboard->Print();
+    // sys::mouse->Print();sys::screnshoot_prefix
 
     auto text = sys::def_container->GetTexture("back");
 
     // text->Bind();
     // text->Draw( v2(), sys::SV2 );
     // text->Unbind();
-
-    msg("dr Tick", dr);
-    dr->Tick();
-
-    sys::camera->Tick();
+    msg( sys::camera->zoom, sys::mouse->wheel );
+    
+    sys::camera->Move( -1*v2(2 * sys::keyboard->hor, 2 * sys::keyboard->ver) );
     sys::camera->Resize(sys::mouse->wheel);
+    sys::camera->Tick();
+
+    dr->Tick();
+    std.Tick();
+    
+    ge::glReadPixels(0, 0, sys::WW, sys::WH, GL_RGBA, GL_UNSIGNED_BYTE, sys::screenshoot_image->data);
+    // for(int i = 0 ; i < 100; i++) msg( int(((unsigned char*)sys::screenshoot_image->data)[ i ]) ); 
+    
+    sys::camera->Tick();
   }
 
   // TODO

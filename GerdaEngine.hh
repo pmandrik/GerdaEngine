@@ -59,6 +59,7 @@ namespace ge {
   
   class CoreFactory : public BaseClass {
     public:
+    string render_interface;
 
     //================================================================================
     virtual std::shared_ptr<Image> CreateImage(string name, string path, string kind){
@@ -79,28 +80,28 @@ namespace ge {
       return image;
     }
     
-    virtual std::shared_ptr<Texture> CreateTexture(string name, std::shared_ptr<Image> img, string kind){
+    virtual std::shared_ptr<Texture> CreateTexture(string name, std::shared_ptr<Image> img){
       std::shared_ptr<Texture> txt;
-      if(kind == "" or kind=="GL") txt = std::make_shared<TextureGL>( img );
+      if(render_interface == "" or render_interface=="OPENGL") txt = std::make_shared<TextureGL>( img );
       else{
-        MSG_ERROR(__PFN__, "skip not-valid name", name, "of a kind", kind);
-        throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a kind \"" + kind + "\"" );
+        MSG_ERROR(__PFN__, "skip not-valid name", name, "of a render_interface", render_interface);
+        throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a render_interface \"" + render_interface + "\"" );
       }
       txt->name = name;
       return txt;
     }
     
-    virtual std::shared_ptr<Shader> CreateShader(string name, std::string & vert, std::string & frag, string kind, string imp){
+    virtual std::shared_ptr<Shader> CreateShader(string name, std::string & vert, std::string & frag, string kind){
       std::shared_ptr<Shader> obj;
       if(kind == "" or kind=="SLa") obj = std::make_shared<SLaShader>();
       else{
         MSG_ERROR(__PFN__, "skip not-valid name", name, "of a kind", kind);
         throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a kind \"" + kind + "\"" );
       }
-      if(imp == "" or imp=="GL") obj->shader_imp = std::make_shared<ShaderGLImp>();
+      if(render_interface == "" or render_interface=="GL") obj->shader_imp = std::make_shared<ShaderGLImp>();
       else{
-        MSG_ERROR(__PFN__, "skip not-valid name", name, "of a imp", kind);
-        throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a imp \"" + kind + "\"" );
+        MSG_ERROR(__PFN__, "skip not-valid name", name, "of a render_interface", render_interface);
+        throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a render_interface \"" + render_interface + "\"" );
       }
       obj->Load( vert, frag );
       return obj;
@@ -120,6 +121,33 @@ namespace ge {
     
     virtual std::shared_ptr<SLaFB> CreateSLaFB(string id, std::shared_ptr<SLaShader> shader){
       std::shared_ptr<SLaFB> obj = std::make_shared<SLaFB>( id, shader );
+      if(render_interface == "" or render_interface=="GL"){
+        auto fb = std::make_shared<FrameBufferGL>();
+        fb->Clear();
+        obj->SetSource( std::dynamic_pointer_cast<FrameBuffer>( fb ) );
+      }
+      else{
+        MSG_ERROR(__PFN__, "skip not-valid name", name, "of a render_interface", render_interface);
+        throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a render_interface \"" + render_interface + "\"" );
+      }
+      obj->Init();
+      return obj;
+    }
+
+    virtual std::shared_ptr<SLaFBLoop> CreateSLaFBLoop(string id, std::shared_ptr<SLaShader> shader){
+      std::shared_ptr<SLaFBLoop> obj = std::make_shared<SLaFBLoop>( id, shader );
+      if(render_interface == "" or render_interface=="GL"){
+        auto fb1 = std::make_shared<FrameBufferGL>();
+        auto fb2 = std::make_shared<FrameBufferGL>();
+        fb1->Clear();
+        fb2->Clear();
+        obj->SetSource( std::dynamic_pointer_cast<FrameBuffer>( fb1 ) );
+        obj->buffer = fb2;
+      }
+      else{
+        MSG_ERROR(__PFN__, "skip not-valid name", name, "of a render_interface", render_interface);
+        throw std::invalid_argument( "skip not-valid name \"" +  name + "\" of a render_interface \"" + render_interface + "\"" );
+      }
       obj->Init();
       return obj;
     }
@@ -181,7 +209,6 @@ namespace ge {
     virtual void ImportTextureCfi(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
       string name = item.GetAttribute("id");
       string image_id = item.GetAttribute("image_id");
-      string imp = item.GetAttribute("imp");
       string image_path = item.GetAttribute("image_path");
       string image_imp  = get_from_configs( item, "image_imp", sys_item, "image_imp" );
       std::shared_ptr<Image> image_obj ;
@@ -190,7 +217,7 @@ namespace ge {
         dc->Add( image_id, image_obj );
       }
       image_obj = dc->GetImage( image_id );
-      auto texture = CreateTexture(name, image_obj, imp);
+      auto texture = CreateTexture(name, image_obj);
       dc->Add( name, texture );
     }
     
@@ -207,9 +234,8 @@ namespace ge {
       string name = item.GetAttribute("id");
       string vert = item.GetAttribute("vert");
       string frag = item.GetAttribute("frag");
-      string kind = item.GetAttribute("kind");
-      string imp  = get_from_configs( item, "imp", sys_item, "shader_imp" );
-      auto obj = CreateShader(name, vert, frag, kind, imp);
+      string kind = item.GetAttribute("kind" );
+      auto obj = CreateShader(name, vert, frag, kind);
 
       if(kind == "" or kind=="SLa"){
         vector<ConfigItem> vars = item.GetData("var");
@@ -228,22 +254,35 @@ namespace ge {
     
     virtual void ImportSLaCfi(std::shared_ptr<DataContainer> dc, const ConfigItem & item, const ConfigItem & sys_item){
       string id = item.GetAttribute("id");
+      bool once = item.GetAttributeI("once", 0);
+
+      string shader_id = item.GetAttribute("shader_id", "");
+      std::shared_ptr<ge::Shader> shader = dc->GetShader( shader_id );
+      std::shared_ptr<ge::SLaShader> frame_shader = std::dynamic_pointer_cast<ge::SLaShader>( shader );
+
       shared_ptr<SLa> obj;
-      // if( item.type == "slaFB" ) obj = CreateSLaFB(id, frame_shader);
+      if( item.type == "slaFB" ){
+        obj = CreateSLaFB(id, frame_shader);
+        obj->once = once;
+      }
+      if( item.type == "slaFBLoop" ){
+        shared_ptr<SLaFBLoop> obj_ = CreateSLaFBLoop(id, frame_shader);
+        obj_->once = once;
+        obj_->clean_buffer = item.GetAttributeI("clean_buffer", 1);
+        obj_->loops = item.GetAttributeI("loops", 1);
+        obj = obj_;
+      }
       // if( item.type == "slaQD" ) obj = CreateSLaQD(id, drawer, frame_shader);
       if( item.type == "slaTD" ){
-        string shader_id = item.GetAttribute("shader_id", "");
         string drawer_id = item.GetAttribute("drawer_id", "");
         string texture_id = item.GetAttribute("texture_id", "");
-        std::shared_ptr<ge::Shader> shader = dc->GetShader( shader_id );
-        std::shared_ptr<ge::SLaShader>  frame_shader = std::dynamic_pointer_cast<ge::SLaShader>( shader );
         std::shared_ptr<Texture> texture = dc->GetTexture( texture_id );
-
         DrawableQuadData dqd = DrawableQuadData( v2(0, 0), sys::FBV2, v2(0, 0), 0, sys::def_textile );
         vector<ConfigItem> dqd_cfg_items = item.GetData("dqd");
         if( dqd_cfg_items.size() ) dqd = CreateDQDCfi(dqd_cfg_items[0], texture);
 
         obj = CreateSLaTD(id, texture, frame_shader, dqd);
+        obj->once = once;
       }
       if(obj) dc->Add( id, obj );
     }
@@ -253,9 +292,7 @@ namespace ge {
       item.Print();
       vector<string> relations = item.GetVectorOverData("relation", "value");
       std::shared_ptr<SLaChain> obj = CreateSLaChain( id, relations );
-msg( obj->links.size(), " = obj->links.size()");
       obj->Init( dc );
-msg( obj->slas.size(), " = obj->slas.size()");
       dc->Add( id, obj );
     }
     
@@ -275,6 +312,7 @@ msg( obj->slas.size(), " = obj->slas.size()");
         if( item.type == "slaFB" ) ImportSLaCfi( dc, item, sys_item );
         if( item.type == "slaQD" ) ImportSLaCfi( dc, item, sys_item );
         if( item.type == "slaTD" ) ImportSLaCfi( dc, item, sys_item );
+        if( item.type == "slaFBLoop" ) ImportSLaCfi( dc, item, sys_item );
         if( item.type == "slaChain" ) ImportSLaChainCfi( dc, item, sys_item );
       } catch (std::invalid_argument const& ex) {
         MSG_ERROR( ex.what(), "\nskip" );
@@ -287,7 +325,7 @@ msg( obj->slas.size(), " = obj->slas.size()");
       /// ImportConfig create items defined in Config into DataContainer
       auto sys_item = cfg->GetSysItem();    
     
-      vector<string> types_for_importcfg = { "image", "texture", "shader", "drawer", "slaFB", "slaQD", "slaTD", "slaChain" };
+      vector<string> types_for_importcfg = { "image", "texture", "shader", "drawer", "slaFB", "slaQD", "slaTD", "slaFBLoop", "slaChain" };
       for( auto type : types_for_importcfg ){
         auto items = cfg->GetItems( type );
         for(auto item : items)
@@ -301,7 +339,7 @@ msg( obj->slas.size(), " = obj->slas.size()");
     shared_ptr<DataContainer> def_container;
   };
 
-  bool init_gerda(string kind, std::shared_ptr<Config> cfg){
+  bool init_gerda( string multimedia_library, string render_interface, std::shared_ptr<Config> cfg = nullptr ){
     msg("init_gerda() ... step I, internal");
     sys::mouse        = new Mouse();
     sys::keyboard     = new Keyboard();
@@ -316,13 +354,8 @@ msg( obj->slas.size(), " = obj->slas.size()");
     msg( screen_width,  screen_height, "screen_width,  screen_height" );
     if( screen_width and screen_height ) sys::set_windows_size(screen_width, screen_height);
 
-    sys::screenshoot_counter     = 100;
-    sys::screenshoot_image       = new Image(sys::WW, sys::WH);
-    sys::screenshoot_image->data = new float[4 * sys::WW * sys::WH];
-    sys::screenshoot_timer       = new Timer(1);
-
     msg("init_gerda() ... step II, backend");
-    if( kind == "sdl" ){
+    if( multimedia_library == "SDL" ){
       // init sdl ...
       msg("init_sdl ... ");
       SDL_Init(SDL_INIT_VIDEO);
@@ -351,7 +384,8 @@ msg( obj->slas.size(), " = obj->slas.size()");
       }
 
       msg("init_sdl_screen ... ok");
-
+      
+      if(render_interface == "OPENGL") {};
       msg("init_opengl via sdl ... ");
       SDL_GLContext glcontext = SDL_GL_CreateContext(window);
       load_opengl_context();
@@ -376,26 +410,44 @@ msg( obj->slas.size(), " = obj->slas.size()");
 
       //
       sys::file_input->read_text_files_imp = std::make_shared<ReadTxtFileImpSDL>();
+      sys::camera       = new CameraGL();
 
       msg("init_gerda ... check GL errors:");
       gl_check_error("...");
     } else {
-      msg("Wrong parameter", kind, ", return false");
+      msg("Wrong parameter", multimedia_library, ", return false");
       return false;
     }
+    
+    /// Setup screenshoot variables
+    sys::screenshoot_counter     = 100;
+    sys::screenshoot_image       = new Image(sys::WW, sys::WH);
+    sys::screenshoot_image->data = new float[4 * sys::WW * sys::WH];
+    sys::screenshoot_timer       = new Timer(1);
+    sys::screnshoot_prefix       = cfg->GetSysAttribute("screnshoot_prefix", "screnshoot");
+    string cfg_image_implementation  = cfg->GetSysAttributeUpper("image_implementation", "STBI");
+    if( cfg_image_implementation == "STBI" ){
+      sys::screenshoot_image->image_implementation = std::make_shared<STBIImageImplementation>();
+    }
+    
+    /// Set if we are going to clear screen every tick
+    sys::core->clear_screen = cfg->GetSysAttributeI("clear_screen", 1);
+    msg( "\n\n\n\n LOOK AT ME ", cfg->GetSysAttributeI("clear_screen", 1) );
 
     msg("init_gerda() ... step III, internal");
-    sys::camera       = new Camera();
 
     msg("init_gerda() ... done");
     return true;
   }
 
-  void tick_gerda(){
-    sys::core->Tick();
+  bool init_gerda(std::shared_ptr<Config> cfg){
+    return init_gerda( cfg->GetSysAttributeUpper("multimedia_library", "SDL"), cfg->GetSysAttributeUpper("render_interface", "OpenGL"), cfg );
+  }
 
+  void tick_gerda(){
     // remove all single-time-used flags
     sys::mouse->Tick();
+    sys::core->Tick();
 
     // get keyboard state after all SDL events was parsed
     sys::keyboard->Tick();
@@ -403,13 +455,17 @@ msg( obj->slas.size(), " = obj->slas.size()");
     // after this call apply in main loop draw functions
     // make screenshoot
     if(sys::keyboard->screenshoot and not sys::screenshoot_timer->itime){
-      glReadPixels(0, 0, sys::WW, sys::WH, GL_RGBA, GL_UNSIGNED_BYTE, sys::screenshoot_image->data);
+      // glReadPixels(0, 0, sys::WW, sys::WH, GL_RGBA, GL_UNSIGNED_BYTE, sys::screenshoot_image->data);
+      for(int i = 0 ; i < 100; i++) msg( int(((unsigned char*)sys::screenshoot_image->data)[ i ]) ); 
       // sys::screenshoot_image->Mirrow();
       sys::screenshoot_image->Flip();
-      // sys::screenshoot_image->WritePNG( get_screnshoot_name() );
+      sys::screenshoot_image->WritePNG( get_screnshoot_name() );
       sys::screenshoot_timer->Tick();
     }
     if(sys::screenshoot_timer->itime) sys::screenshoot_timer->Tick();
+    
+    // at the end sclear screen
+    sys::core->ClearScreen();
   }
 
   bool check_exit(){

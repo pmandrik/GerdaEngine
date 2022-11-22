@@ -10,69 +10,14 @@ namespace ge {
 
   static const GLfloat INIT_MATRIX[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
 
-  struct CameraTarget{
-    CameraTarget() : pos(0), time(0), zoom(0), normal(0), max_time(1)  {}
-    CameraTarget(v2 p, int t, float z, v2 n) : pos(p), time(t), zoom(z), normal(n), max_time(t)  {}
-
-    void Tick( float mval ){
-      float val = mval * (time / (float) max_time);
-      pos *= val;
-      zoom *= val;
-      normal *= val;
-      time = max(0, time-1);
-    }
-
-    v2 pos;
-    int time;
-    int max_time;
-    float zoom;
-    v2 normal;
-  };
-
-  class Camera {
+  class CameraGL : public Camera {
     public:
-      Camera(){
+      CameraGL(){
         Reset();
         projMatrix[0] = 777;
       }
 
-      inline void Resize( const int & r){ zoom = max(0.000000001, zoom - 0.1*r*zoom); }
-      inline void ResetZoom(){ zoom = 1.; }
-      void Reset(){
-        to = v2(0, 0, 0);
-        from = v2(0, 0, 1);
-        normal = v2(0, 1, 0);
-        zoom = 1;
-        buffer = sys::z_buffer;
-        pause = true;
-        smooth = false;
-        angleZ = 0.;
-      }
-
-      void SetTarget(v2 target){
-        to.Set(target);
-        from.Set(target);
-      }
-
-      void SetTarget(v2 target, float z, v2 norm){
-        SetTarget(target);
-        zoom = z;
-        normal = norm;
-      }
-
-      void Move(v2 shift){
-        to += shift;
-        from += shift;
-      }
-
-      void PushPoint(v2 pos, int time, float zoom, v2 normal = v2(0,1)){
-        targets.push_back( CameraTarget(pos, time, zoom, normal) );
-      }
-
-      v2 AbsToScreen(int x, int y, bool flip_y = true){ return -to + v2(x - sys::WW2, (-y + sys::WH2) * (-1 + 2 * flip_y) ) * zoom; }
-      v2 AbsToScreen(v2 pos,       bool flip_y = true){ return -to + v2(pos.x - sys::WW2, (-pos.y + sys::WH2) * (-1 + 2 * flip_y) ) * zoom; }
-
-      void ReTick(){
+      virtual void ReTick(){
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixf(projMatrix);
 
@@ -80,7 +25,7 @@ namespace ge {
         glLoadMatrixf(modelMatrix);
       }
 
-      void LoadFBDefault(){
+      virtual void LoadFBDefault(){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(-sys::FBW2, sys::FBW2, -sys::FBH2, sys::FBH2, -buffer, buffer);  // ge::glViewport( 0, 0, sys::WW, sys::WH );
@@ -89,7 +34,7 @@ namespace ge {
         glLoadIdentity();
       }
 
-      void LoadDefault(){
+      virtual void LoadDefault(){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(-sys::SW2, sys::SW2, sys::SH2, -sys::SH2, -buffer, buffer);  // ge::glViewport( 0, 0, sys::WW, sys::WH );
@@ -98,19 +43,7 @@ namespace ge {
         glLoadIdentity();
       }
 
-      float GetPhi(){
-        return normal.Angle();
-      }
-
-      void Print(){
-        msg(to, zoom, normal);
-      }
-
-      bool Finished(){
-        return not targets.size();
-      }
-
-      void Tick(){
+      virtual void Tick(){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(-sys::WW2 * zoom, sys::WW2 * zoom, -sys::WH2 * zoom, sys::WH2 * zoom, -buffer, buffer);
@@ -156,11 +89,6 @@ namespace ge {
         }
       }
 
-    v2 to, from, normal; 
-    CameraTarget inertia;
-    float zoom, buffer, angleZ;
-    vector<CameraTarget> targets;
-    bool pause, smooth;
     GLfloat projMatrix[16], modelMatrix[16], modelViewProjectionMatrix[16];
   };
 

@@ -107,7 +107,16 @@ namespace ge {
       if(ptr == container.end()) return false;
       MSG_WARNING(__PFN__, name, "already exist, would not be able to add/create");
     }
-  };
 
+    // ======= get all ====================================================================
+    template<typename T>
+    std::vector< std::shared_ptr<T> > GetAll(const map<string, std::shared_ptr<T> > & container, string selections = ""){
+      std::vector< std::shared_ptr<T> > answer;
+      for( auto item : container ) answer.push_back( item.second );
+      return answer;
+    }
+
+    std::vector< std::shared_ptr<Shader>> GetShaders(string selections = ""){ return GetAll(frame_shaders, selections); }
+  };
 }
 #endif

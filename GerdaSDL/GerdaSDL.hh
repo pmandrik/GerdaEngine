@@ -188,10 +188,19 @@ namespace ge {
       keyboad_sdl = KeyboardSDL( keyboard );
       clocker_sdl = ClockerSDL( fps );
     }
+    
+    void ClearScreen(){
+      if( not clear_screen ) return;
+      SDL_GL_SwapWindow(window);
+      glClearColor(sys::fb_def_color.r, sys::fb_def_color.g, sys::fb_def_color.b, sys::fb_def_color.a);
+      glClear(GL_COLOR_BUFFER_BIT);
+      glClear(GL_DEPTH_BUFFER_BIT);
+    }
 
     void Tick(){
       // sleep a litle bit
       clocker_sdl.Tick();
+      mouse_sdl.Release();
 
       /// check SDL events & update mouse state
       while(SDL_PollEvent(&game_event)){
@@ -202,11 +211,6 @@ namespace ge {
 
       /// update keyboard state
       keyboad_sdl.Tick();
-
-      SDL_GL_SwapWindow(window);
-      glClearColor(sys::fb_def_color.r,sys::fb_def_color.g,sys::fb_def_color.b,sys::fb_def_color.a);
-      glClear(GL_COLOR_BUFFER_BIT);
-      glClear(GL_DEPTH_BUFFER_BIT);
     }
   };
 

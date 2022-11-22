@@ -22,12 +22,13 @@ namespace ge {
     }
 
     void ExecuteChain( std::shared_ptr<SLaChain> chain ){
-msg(1, chain);
       std::vector< std::shared_ptr<SLa> > & slas = chain->slas;
-msg("slas.size() = ", slas.size() );
       for(int i = 0, i_max = slas.size(); i < i_max; ++i){
-msg(2, i);
         std::shared_ptr<SLa> sla = slas[ i ];
+        
+        if(not sla->target ) sys::camera->ReTick();
+        if(    sla->target ) sys::camera->LoadFBDefault();
+        
         if(not sla->on) continue;
         if(sla->clean) sla->Clean();
         sla->Tick();

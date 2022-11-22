@@ -68,20 +68,16 @@ namespace ge {
         glBindTexture(GL_TEXTURE_2D, 0);
       }
 
-      void DrawQuad(const float & xd = -sys::FBW2, const float & yd = -sys::FBH2, const float & xu = sys::FBW2, const float & yu = sys::FBH2, float z_level=0){
+      void Draw(const float & xd = -sys::FBW2, const float & yd = -sys::FBH2, const float & xu = sys::FBW2, const float & yu = sys::FBH2, float z_level=0){
+        /// Draw framebuffer rectangle, in most cases:
+        /// 1) on the another framebuffer, than sizes are taken from sys::FBW, sys::FBH
+        glBindTexture(GL_TEXTURE_2D, texture_id);
         glBegin(GL_QUADS);
         glTexCoord2f(1, 	1);  glVertex3f( xu,  yu, z_level);
         glTexCoord2f(0,   1);  glVertex3f( xd,  yu, z_level);
         glTexCoord2f(0,   0);  glVertex3f( xd,  yd, z_level);
         glTexCoord2f(1, 	0);  glVertex3f( xu,  yd, z_level);
         glEnd();
-      }
-
-      void Draw(const float & xd = -sys::FBW2, const float & yd = -sys::FBH2, const float & xu = sys::FBW2, const float & yu = sys::FBH2, float z_level=0){
-        /// Draw framebuffer rectangle, in most cases:
-        /// 1) on the another framebuffer, than sizes are taken from sys::FBW, sys::FBH
-        glBindTexture(GL_TEXTURE_2D, texture_id);
-        DrawQuad(xd, yd, xu, yu, z_level);
         glBindTexture(GL_TEXTURE_2D, 0);
       }
 

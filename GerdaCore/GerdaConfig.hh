@@ -39,8 +39,6 @@ namespace ge {
 
     void AddData(string name, ConfigItem value){
       data[ name ].push_back( value );
-msg("!!!");
-Print(10);
     }
 
     bool Merge( ConfigItem & other ){
@@ -56,6 +54,11 @@ Print(10);
     /// Get Attribute as string, int, float
     string GetAttribute(string name, string def = "") const {
       return pm::map_get( attributes, name, def );
+    }
+
+    string GetAttributeUpper(string name, string def = "") const {
+      string answer = pm::map_get( attributes, name, def );
+      return upper_string(answer);
     }
 
     int GetAttributeI(string name, int def = 0) const {
@@ -111,16 +114,20 @@ Print(10);
 
     ConfigItem & GetSysItem(){ return sys; }
 
-    string GetSysAttribute( string name ){
-      return GetSysItem().GetAttribute( name );
+    string GetSysAttribute( string name, string def = "" ){
+      return GetSysItem().GetAttribute( name, def );
+    }
+
+    string GetSysAttributeUpper( string name, string def = "" ){
+      return GetSysItem().GetAttributeUpper( name, def );
     }
 
     int GetSysAttributeI( string name, int def = 0 ){
-      return GetSysItem().GetAttributeI( name );
+      return GetSysItem().GetAttributeI( name, def );
     }
 
     int GetSysAttributeF( string name, int def = 0 ){
-      return GetSysItem().GetAttributeF( name );
+      return GetSysItem().GetAttributeF( name, def );
     }
 
     void AddItem( ConfigItem & item ){
@@ -163,9 +170,10 @@ Print(10);
       /// class "drawer"
       LoadItems("drawer", {"id", "texture_id"}, {"imp", "array_size"});
       /// class "slaFB", "slaQD"
-      LoadItems("slaFB", {"id"}, {"shader_id"});
-      LoadItems("slaQD", {"id", "drawer_id"}, {"shader_id"});
-      LoadItems("slaTD", {"id", "texture_id"}, {"shader_id"});
+      LoadItems("slaFB", {"id"}, {"shader_id", "once"});
+      LoadItems("slaQD", {"id", "drawer_id"}, {"shader_id", "once"});
+      LoadItems("slaTD", {"id", "texture_id"}, {"shader_id", "once"});
+      LoadItems("slaFBLoop", {"id"}, {"shader_id", "once", "loops", "clean_buffer"});
       LoadItems("slaChain", {"id"}, {});
       
       /// init unic id attribute name used to check duplicates      
