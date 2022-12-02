@@ -26,55 +26,126 @@ namespace ge{
 
     return sys::screnshoot_prefix + "_" + postfix + ".png";
   }
-  //============================================================================================================= SLa shader control
-  class ShaderStdin {
-    /// class to update shaders variables from keyboard on the fly and dump shader states into console
+
+  //============================================================================================================= Development helpers classes
+  class KeyAction {
+    bool off = true;
+    int key = -1;
+    char kind;
+
+    std::function< void( void ) > func;
+
     public:
-    ShaderStdin( vector< shared_ptr<Shader> > shaders_ ){
+    KeyAction( char kind_, int key_, std::function< void( void ) > func_) : kind(kind_), key(key_), func(func_) {
+    }
+
+    void Tick(){
+      if( kind == 'S' ){
+        if( sys::keyboard->Pressed( key ) ) off = not off;
+        if( not off ) return;
+        func();
+      }
+      if( kind == 'P' ){
+        if( not sys::keyboard->Pressed( key ) ) return;
+        func();
+      }
+    }
+  };
+
+  class DevelopmentHelper {
+    vector<KeyAction> swithers;
+
+    void AddSwitcher( char kind, int key, std::function< void( void ) > f ){
+      swithers.push_back( KeyAction( kind, key, f) );
+    }
+
+    /// class for development interaction 
+    /// update shaders variables from keyboard on the fly and dump shader states into console
+    public:
+    DevelopmentHelper( vector< shared_ptr<Shader> > shaders_ ){
       shaders_iter = 0;
       dir = 1;
       shader_prev = nullptr;
       shader_print_mode = "xml,cpp,vector";
       shaders = shaders_;
+
+      AddSwitcher( 'P', key::SPACE, [&](void) { PrintShaders(); } );
+      AddSwitcher( 'S', key::L, [&](void) { SaveShaderHistory(); } );
+      AddSwitcher( 'P', key::K_0, [&](void){ shader_active->ResetVars(); } );
+      AddSwitcher( 'P', key::Q, [&](void){ dir *= -1; msg(dir); } );
+      AddSwitcher( 'P', key::R, [&](void){ ReloadShaders(); });
+      for(int i = key::K_1; i <= key::K_9; i++){
+        AddSwitcher( 'P', i, [&, i](void) { UpdateShaderVar( i -  key::K_1); } );
+      }
+      AddSwitcher( 'P', key::K_1, [&](void) { PrintShaders(); } );
+      AddSwitcher( 'P', key::K_1, [&](void) { PrintShaders(); } );
+    }
+
+    float GetShaderDVar(){
+      return (0.1 + sys::keyboard->Holded(key::W) + 10*sys::keyboard->Holded(key::E)) * dir;
+    }
+
+    void UpdateShaderVar( int id ){
+      shader_active->vars[id] += GetShaderDVar();
+      msg(shader_active->vars[id]);
+      shader_updated = true;
     }
 
     void ReloadShaders(){
-      //for(auto shader : shaders) shader->Reload();      
+      // for(auto shader : shaders) shader->Reload();      
     }
 
     void PrintShaders(){
       // for(auto shader : shaders) shader->Print( shader_print_mode );
     }
+
+    void SaveShaderHistory(){
+      if( not shader_updated ) return;
+      shader_updated = false;
+    }
+
+    void DrawTrack( bool draw ){
+      if( not draw ){
+        if( draw ){
+        } 
+        return;
+      }
+      /// add points to track time to time
+      // start new track
+      // Track
+      // add point new track
+      sys::mouse;
+
+      
+    }
   
     void Tick(){
+      /// Get input from mouse drawer
+      
+
+      /// Update variable in Shaders from keyboard
       if( shaders.size() == 0) return;
       if(sys::keyboard->Pressed(key::TAB) and sys::keyboard->Holded(key::LCTRL)) shaders_iter--;
       else if(sys::keyboard->Pressed(key::TAB)) shaders_iter++;
       if( shaders.size() <= shaders_iter ) shaders_iter = 0;
       if( shaders_iter < 0 ) shaders.size() - 1;
-      shared_ptr<SLaShader> shader = std::dynamic_pointer_cast<SLaShader>( shaders.at( shaders_iter ) );
-      if(not shader) MSG_WARNING(__PFN__, "NULL shader at index", shaders_iter);
-      if(shader_prev != shader) MSG_INFO(__PFN__, ": switch to ", shader->name);
-      if(sys::keyboard->Pressed(key::Q)) {dir *= -1; msg(dir);};
-      float dvar = (0.1 + sys::keyboard->Holded(key::W) + 10*sys::keyboard->Holded(key::E)) * dir;
-      if(sys::keyboard->Pressed(key::K_1)) { shader->vars[0] += dvar; msg(shader->vars[0]); }
-      if(sys::keyboard->Pressed(key::K_2)) { shader->vars[1] += dvar; msg(shader->vars[1]); }
-      if(sys::keyboard->Pressed(key::K_3)) { shader->vars[2] += dvar; msg(shader->vars[2]); }
-      if(sys::keyboard->Pressed(key::K_4)) { shader->vars[3] += dvar; msg(shader->vars[3]); }
-      if(sys::keyboard->Pressed(key::K_5)) { shader->vars[4] += dvar; msg(shader->vars[4]); }
-      if(sys::keyboard->Pressed(key::K_6)) { shader->vars[5] += dvar; msg(shader->vars[5]); }
-      if(sys::keyboard->Pressed(key::K_7)) { shader->vars[6] += dvar; msg(shader->vars[6]); }
-      if(sys::keyboard->Pressed(key::K_8)) { shader->vars[7] += dvar; msg(shader->vars[7]); }
-      if(sys::keyboard->Pressed(key::K_9)) { shader->vars[8] += dvar; msg(shader->vars[8]); }
-      if(sys::keyboard->Pressed(key::K_0)) { shader->ResetVars(); }
-      if(sys::keyboard->Pressed(key::SPACE)) PrintShaders();
-      // if(sys::keyboard->Pressed(key::R))     ReloadShaders();
-      shader_prev = shader;
+      shader_active = std::dynamic_pointer_cast<SLaShader>( shaders.at( shaders_iter ) );
+      if(not shader_active) MSG_WARNING(__PFN__, "NULL shader at index", shaders_iter);
+      if(shader_prev != shader_active) MSG_INFO(__PFN__, ": switch to ", shader_active->name);
+
+      for(auto swither : swithers) swither.Tick();
+
+      shader_prev = shader_active;
+
+      msg(shader_active->vars[0]);
     }
+
+    bool shader_updated = false;
     int shaders_iter, dir;
     string shader_print_mode;
     vector< shared_ptr<Shader> > shaders;
-    shared_ptr<Shader> shader_prev;
+    shared_ptr<SLaShader> shader_active, shader_prev;
+    Carta dev_carta;
   };
 
 };

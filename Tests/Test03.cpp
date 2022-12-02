@@ -19,7 +19,7 @@ int main(){
   auto ch = sys::def_container->GetSLaChain("chain");
   dr->AddChain( sys::def_container->GetSLaChain("chain") );
   
-  ShaderStdin std ( sys::def_container->GetShaders() );
+  DevelopmentHelper std ( sys::def_container->GetShaders() );
 
   bool game = true;
   msg("Loop ...", ch );

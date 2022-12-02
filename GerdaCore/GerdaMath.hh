@@ -170,13 +170,73 @@ namespace ge {
   }
 
   //------------------------------------------------------------------ GEOMETRICAL ABSRACTS -----------------------------------------------------------------
-  struct Rect{ // TODO Resize, rotate?
+  struct Rect { // TODO Resize, rotate?
     /// rectangular box
     Rect(float x_min_, float y_min_, float x_max_, float y_max_){
       x_min = x_min_; x_max = x_max_; y_min = y_min_; y_max = y_max_;
     }
     bool Contain(const v2 & pos){ return check_in(pos.x, x_min, x_max) and check_in(pos.y, y_min, y_max); }
     float x_min, x_max, y_min, y_max;
+  };
+
+  struct Point {
+    /// x, y + string metadata
+    Point(const v2 & pos_){ pos = pos_; }
+    Point(const v2 & pos_, const vector<string> & meta_){
+      pos = pos_;
+      meta = meta_;
+    }
+    v2 pos;
+    vector<string> meta;
+  };
+
+  struct Track {
+    /// Track is a vector of 2d points
+    vector<v2> points;
+    float lenght = -1;
+
+    float GetLenght(){
+      float L = 0;
+      for(int i = 1; i < points.size(); ++i)
+        L += (points[i] - points[i-1]).L();
+      return L;
+    }
+
+    v2 GetPos(const float & step){
+      if( not points.size() ) return v2();
+      if( lenght < 0 ) lenght = GetLenght();
+      if( points.size() == 1 or lenght <= 0) return points.at(0);
+
+      float L = 0, dL = 0;
+      int N_step = 1;
+      for(; N_step < points.size(); ++N_step){
+        dL = (points[N_step] - points[N_step-1]).L();
+        if( step <= (L+dL) / lenght ) break;
+        L += dL;
+      }
+
+      float frac = (step - L/lenght);
+      return interpolation_linear( points[N_step-1], points[N_step], frac );
+    }
+  };
+
+  class Carta {
+    /// Carta is a union of Points and Tracks
+    public:
+    map<string, vector<Point> > coordinates;
+    map<string, vector<Track> > tracks;
+
+    void AddCoodinate(const string & id, const v2 & pos){
+      auto it = coordinates.find(id);
+      if( it != coordinates.end() ) it->second.emplace_back( Point(pos) );
+      else coordinates[id] = { Point(pos) };
+    }
+
+    void AddCoodinate(const string & id, const v2 & pos, const vector<string> & meta){
+      auto it = coordinates.find(id);
+      if( it != coordinates.end() ) it->second.emplace_back( Point(pos, meta) );
+      else coordinates[id] = { Point(pos, meta) };
+    }
   };
 
 };
