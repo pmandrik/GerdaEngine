@@ -192,6 +192,9 @@ namespace ge {
 
   struct Track {
     /// Track is a vector of 2d points
+    Track(){}
+    
+    public:
     vector<v2> points;
     float lenght = -1;
 
@@ -200,6 +203,41 @@ namespace ge {
       for(int i = 1; i < points.size(); ++i)
         L += (points[i] - points[i-1]).L();
       return L;
+    }
+    
+    void Clear(){
+      points.clear();
+    }
+    
+    void Pop(){
+      if( not points.size() ) return;
+      points.pop_back();
+    }
+    
+    void Add( v2 point ){
+      points.push_back( point );
+    }
+    
+    Track GetSlimmed( char strategy = 'I', float factor = 1. ){
+      /// Get a copy of vector with reduced number of points
+      /// strategy = 'I' -> keep every int(factor) point
+      /// strategy = 'D' -> remove points with distance < factor
+      Track answer;
+      if( not points.size() ) return answer;
+      if( strategy == 'I' ){
+        int factori = int( factor + 0.5 );
+        for(int i = 0, i_max = points.size(); i < i_max; i += factori ){
+          answer.Add( points[i] );
+        }
+      } else if( strategy == 'D' ){
+        answer.Add( points[0] );
+        float factor2 = factor * factor;
+        for(int i = 1, i_max = points.size(); i < i_max; ++i ){
+          if( (points[i] - points[i-1]).L2() < factor2 ) continue;
+          answer.Add( points[i] );
+        }
+      }
+      return answer;
     }
 
     v2 GetPos(const float & step){

@@ -28,35 +28,12 @@ namespace ge{
   }
 
   //============================================================================================================= Development helpers classes
-  class KeyAction {
-    bool off = true;
-    int key = -1;
-    char kind;
-
-    std::function< void( void ) > func;
-
-    public:
-    KeyAction( char kind_, int key_, std::function< void( void ) > func_) : kind(kind_), key(key_), func(func_) {
-    }
-
-    void Tick(){
-      if( kind == 'S' ){
-        if( sys::keyboard->Pressed( key ) ) off = not off;
-        if( not off ) return;
-        func();
-      }
-      if( kind == 'P' ){
-        if( not sys::keyboard->Pressed( key ) ) return;
-        func();
-      }
-    }
-  };
-
   class DevelopmentHelper {
-    vector<KeyAction> swithers;
+    ActionTree<KeyAction> key_actions;
+    TrackMaster track_master;
 
-    void AddSwitcher( char kind, int key, std::function< void( void ) > f ){
-      swithers.push_back( KeyAction( kind, key, f) );
+    void AddSwitcher( std::string group, char kind, int key, std::function< void( void ) > f ){
+      key_actions.Add( group, KeyAction( kind, key, f) );
     }
 
     /// class for development interaction 
@@ -69,16 +46,39 @@ namespace ge{
       shader_print_mode = "xml,cpp,vector";
       shaders = shaders_;
 
-      AddSwitcher( 'P', key::SPACE, [&](void) { PrintShaders(); } );
-      AddSwitcher( 'S', key::L, [&](void) { SaveShaderHistory(); } );
-      AddSwitcher( 'P', key::K_0, [&](void){ shader_active->ResetVars(); } );
-      AddSwitcher( 'P', key::Q, [&](void){ dir *= -1; msg(dir); } );
-      AddSwitcher( 'P', key::R, [&](void){ ReloadShaders(); });
+      // shader group
+      AddSwitcher( "shader", 'P', key::SPACE, [&](void) { PrintShaders(); } );
+      AddSwitcher( "shader", 'S', key::L, [&](void) { SaveShaderHistory(); } );
+      AddSwitcher( "shader", 'P', key::K_0, [&](void){ shader_active->ResetVars(); } );
+      AddSwitcher( "shader", 'P', key::Q, [&](void){ dir *= -1; msg(dir); } );
+      AddSwitcher( "shader", 'P', key::R, [&](void){ ReloadShaders(); });
       for(int i = key::K_1; i <= key::K_9; i++){
-        AddSwitcher( 'P', i, [&, i](void) { UpdateShaderVar( i -  key::K_1); } );
+        AddSwitcher( "shader", 'P', i, [&, i](void) { UpdateShaderVar( i -  key::K_1); } );
       }
-      AddSwitcher( 'P', key::K_1, [&](void) { PrintShaders(); } );
-      AddSwitcher( 'P', key::K_1, [&](void) { PrintShaders(); } );
+      
+      // track // start draw new track, reset new track, remove last track point, dump tracks
+      AddSwitcher( "track", 'S', key::Q, [&](void) { if(sys::mouse->left_down) track_master.AddPoint( v2(sys::mouse->x, sys::mouse->y) ); } );
+      AddSwitcher( "track", 'P', key::W, [&](void) { track_master.StartNewTrack(); } );
+      AddSwitcher( "track", 'P', key::E, [&](void) { track_master.ResetTrack(); } );
+      AddSwitcher( "track", 'P', key::R, [&](void) { track_master.RemoveLastPoint(); } );
+      AddSwitcher( "track", 'P', key::SPACE, [&](void) { track_master.Dump(); } );
+      
+      // top group
+      AddSwitcher( "top", 'P', key::BACKSPACE, [&](void) { 
+        key_actions.Reset(); 
+        msg("RESET");
+      } );
+      AddSwitcher( "top", 'P', key::M, [&](void) { 
+        key_actions.ActivateGroup("shader", false); 
+        key_actions.ActivateGroup("menu", true); 
+      } );
+      
+      // menu group
+      AddSwitcher( "menu", 'P', key::T, [&](void) { key_actions.SwitchGroups("menu", "track"); } );
+      
+      // set default working at top
+      key_actions.AddTopAction("top");
+      key_actions.AddTopAction("shader");
     }
 
     float GetShaderDVar(){
@@ -103,21 +103,6 @@ namespace ge{
       if( not shader_updated ) return;
       shader_updated = false;
     }
-
-    void DrawTrack( bool draw ){
-      if( not draw ){
-        if( draw ){
-        } 
-        return;
-      }
-      /// add points to track time to time
-      // start new track
-      // Track
-      // add point new track
-      sys::mouse;
-
-      
-    }
   
     void Tick(){
       /// Get input from mouse drawer
@@ -133,7 +118,7 @@ namespace ge{
       if(not shader_active) MSG_WARNING(__PFN__, "NULL shader at index", shaders_iter);
       if(shader_prev != shader_active) MSG_INFO(__PFN__, ": switch to ", shader_active->name);
 
-      for(auto swither : swithers) swither.Tick();
+      key_actions.Tick();
 
       shader_prev = shader_active;
 

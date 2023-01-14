@@ -4,9 +4,10 @@
 #include "set"
 using namespace ge;
 
-int main(){
+int main(){  
   // load config
   shared_ptr<XMLConfig> cfg = make_shared<XMLConfig>( "Data/sla_test03.xml" );
+  // shared_ptr<XMLConfig> cfg = make_shared<XMLConfig>( "Data/sla_test03_a.xml" );
 
   // init gerda
   init_gerda( cfg );
@@ -34,7 +35,7 @@ int main(){
     // text->Bind();
     // text->Draw( v2(), sys::SV2 );
     // text->Unbind();
-    msg( sys::camera->zoom, sys::mouse->wheel );
+    // msg( sys::camera->zoom, sys::mouse->wheel );
     
     sys::camera->Move( -1*v2(2 * sys::keyboard->hor, 2 * sys::keyboard->ver) );
     sys::camera->Resize(sys::mouse->wheel);

@@ -11,6 +11,15 @@ namespace ge{
   class FrameBuffer;
 
   // ==================================================================== SLa shader
+  /*class SLaShaderTP : public TimePointJSON {
+    void ToJSON(  ){
+    }
+
+    void FromJSON(  ){
+    }
+  };
+*/
+
   class SLaShader : public Shader {
     /// special case of shader with up to 3 textures and up to 10 variables + 'time'
     public:

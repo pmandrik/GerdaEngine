@@ -177,8 +177,8 @@ namespace ge {
       void Tick(){
         // update keyboard in the implementation
         // some regular event - this should be configuradable ...
-        hor = check_sign( Holded(key::D) + Holded(key::RIGHT) - Holded(key::A) - Holded(key::LEFT));
-        ver = check_sign( Holded(key::W) + Holded(key::UP) - Holded(key::S) - Holded(key::DOWN));
+        hor = check_sign( Holded(key::D) + Holded(key::RIGHT) - Holded(key::A) - Holded(key::LEFT) );
+        ver = check_sign( Holded(key::W) + Holded(key::UP) - Holded(key::S) - Holded(key::DOWN) );
         actz = Pressed(key::Z) + Pressed(key::K) + Pressed(key::RETURN) + Pressed(key::SPACE);
         actx = Pressed(key::X) + Pressed(key::L);
         hor_pressed = check_sign( Pressed(key::D) + Pressed(key::RIGHT) - Pressed(key::A) - Pressed(key::LEFT)  );
@@ -314,6 +314,8 @@ namespace ge {
 #include "GerdaSLa.hh"
 #include "GerdaDraw.hh"
 #include "GerdaConfig.hh"
+#include "GerdaGUI.hh"
+#include "GerdaGamePrimitives.hh"
 #include "GerdaDevelopment.hh"
 
 #endif
