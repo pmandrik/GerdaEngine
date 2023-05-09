@@ -1,3 +1,3 @@
 echo "Extract extern tarball"
-tar -xf GerdaEngine/ShtaExtern.tar.xz
-mv GerdaExtern ShtaExtern
+tar -xf ShtaExtern.tar.xz
+mv GerdaExtern ../ShtaExtern
