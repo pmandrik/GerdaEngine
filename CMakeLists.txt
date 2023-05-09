@@ -11,7 +11,7 @@ SET(BUILD_SE_HLT_TESTS FALSE CACHE BOOL "build with Shta engine HLT tests") # cm
 
 project(${TEST_NAME})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
 add_definitions( -Wfatal-errors )
 
 #-- Shta TESTS :
@@ -64,6 +64,9 @@ if(BUILD_SE_HLT_TESTS)
       add_executable( ${testname} ${testsourcefilefull} )
       add_test(NAME ${testsourcefilefull} COMMAND ${testname} )
   endforeach( testsourcefilefull ${APP_SOURCES} )
+  
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
 file(GLOB ENGINE_DATA ${GE_PATH}/Data/*)

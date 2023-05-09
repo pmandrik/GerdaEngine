@@ -29,24 +29,35 @@ namespace ge {
   //  - Start(string id) -> Reset(), 
   //  - Reset() -> clear recors and marks, MoveTo() id used with Start call
   
-  // DialogFactory() 
+  // DialogFactory() TODO
   //  - return Dialog() class filled with DialogEntry() items from input format
   //  - e.g. from XMLs:
   //      <DialogEntry id="" data="" next_id="" mark="">
   //        <DialogAnswer id="" data="" next_id="" mark=""/>
   //      </DialogEntry>
   //    in general, DialogEntry.data and DialogAnswer.data may have different ay types D & A
-  //
-  // 
+  
+  // DialogProxy(): TODO
+  //  - tick_per_letter - speed of revealed letters
+  //  - dialog box width W, letter W
+  //  - void Tick( action )
+  //    - if "Z" action and not ready -> skip to ready and let GetData() return whole answer
+  //    - if no actions and not read -> update timer and maybe let GetData() return more symbols
+  //    - if "Z" action and ready -> 
+  //    - we have some delay between "Z" actons are acceptable 
+  //    - if arrows actions -> change between answers marked to be next
+  //    - return Flase when dialog "end"
+  //  - string GetData() - get formatted data (entry) suitable for the dialog box 
+  //  - string GetAnswers() - get formatted data (entry) suitable for the dialog box 
   
   template<class A>
-  class DialogAnswer{
+  struct DialogAnswer{
     string id, next_id, mark;
     A data;
   };
 
   template<class D>
-  class DialogEntry {
+  struct DialogEntry {
     string id, next_id, mark;
     D data;
     vector<string> answer_ids;
@@ -78,33 +89,43 @@ namespace ge {
     const vector<string> GetRecord() const { return records; }
     const string GetMarkRecord() const { return marks; }
     
-    void AddAnswer(string entry_id, string id, A & data, string next_id, string mark){
-      answers[ id ] = {
+    void AddAnswer(string entry_id, string id, A data, string next_id="", string mark=""){
+      DialogAnswer<A> ans = {
         .id = id,
         .next_id = next_id,
         .mark = mark,
         .data = data
       };
+      answers[ id ] = ans;
       auto de = entries.find( entry_id );
-      if( de == entries.end() ) entries.answer_ids.push_back( id );
+      if( de != entries.end() ) de->second.answer_ids.push_back( id );
     }
     
-    void AddEntry(string id, D & data, string next_id, string mark){
+    void AddEntry(string id, D data, string next_id="", string mark=""){
       if( state == "none" ) state = "ready";
-      entries[ id ] = {
+      DialogEntry<D> ent = {
         .id = id,
         .next_id = next_id,
         .mark = mark,
         .data = data
       };
+      entries[ id ] = ent;
     }
     
-    D GetData(string id) const { return entries[id].data; };
-    A GetAnswerData(string id) const { return answers[id].data; };
+    D GetData(string id) const { 
+      auto de = entries.find( id );
+      return de->second.data; 
+    };
+    
+    A GetAnswerData(string id) const { 
+      auto de = answers.find( id );
+      return de->second.data; 
+    };
     
     vector<A> GetAnswers(string id) const {
       vector<A> answers;
-      vector<string> answer_ids = entries[id].answer_ids;
+      auto de = entries.find( id );
+      const vector<string> & answer_ids = de->second.answer_ids;
       for(auto aid : answer_ids){
         answers.push_back( GetAnswerData(aid) );
       }
@@ -115,27 +136,29 @@ namespace ge {
     vector<A> GetAnswers() const { return GetAnswers( active_entry.id ); }
     
     void PutAnswer(unsigned int index){
-      if( index >= active_entry.answer_ids.size() ) return;
-      string id = active_entry.answer_ids[index];
+      if( index < active_entry.answer_ids.size() ) {
+        string id = active_entry.answer_ids[index];
       
-      auto answer = answers[id];
-      Record( answer );
+        auto answer = answers[id];
+        Record( answer );
+      
+        // check if have next dialog entry
+        if( MoveTo( answer.next_id ) ) return;
+      }
       
       // check if have default next dialog entry
-      if( MoveTo( answer.next_id ) ) return;
-      
-      // check if have default next dialog entry
+      Record( "answer:default" );
       if( MoveTo( active_entry.next_id ) ) return;
       
       // end of dialog
       End();
     }
     
-    bool MoveTo(string id) const {
+    bool MoveTo(string id) {
       auto it = entries.find( id );
       if( it == entries.end() ) return false;
       active_entry = it->second;
-      Record( id );
+      Record( active_entry );
       state = "active";
       return true;
     }
@@ -154,9 +177,8 @@ namespace ge {
     void End(){
       Record("end");
       active_entry = DialogEntry<D>();
-      state = "done";
+      state = "end";
     }
-    
   };
 
 }  
