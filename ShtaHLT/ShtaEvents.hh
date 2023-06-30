@@ -1,13 +1,13 @@
 // P.~Mandrik, 2023, https://github.com/pmandrik/ShtaEngine
-
-#ifndef GERDA_EVENTS_HH 
-#define GERDA_DIALOGS_HH 1
+#ifndef SHTA_EVENTS_HH 
+#define SHTA_EVENTS_HH 1
 
 #include <map>
 #include <vector>
 #include <string>
 #include <list>
 #include <memory>
+#include <functional>
 
 #include "pmlib_other.hh"
 #include "pmlib_msg.hh"
@@ -31,15 +31,33 @@ namespace shta {
   struct Event {
     string event_code;
     string queue_code;
-    map<string, string> data;
     int priority = 0;
     int weight   = 0;
+    
+    Event(){}
+    Event(string event_code, string queue_code, int priority = 0, int weight = 0){
+      this->event_code = event_code;
+      this->queue_code = queue_code;
+      this->priority = priority;
+      this->weight = weight;
+    }
+    
+    map<string, string> data;
   };
   
   class EventHandler {
     public:
-    void Tick( shared_ptr<Event> event ){
+    EventHandler( const string & code ){ this->code = code; }
+    EventHandler( const string & code, function<void(shared_ptr<Event> event)> func ){
+      this->code = code;
+      this->func = func;
     }
+
+    virtual void Tick( shared_ptr<Event> event ){
+      func( event );
+    }
+    
+    function<void(shared_ptr<Event> event)> func;
     string code;
   };
   
@@ -53,8 +71,7 @@ namespace shta {
     virtual void Pop(){ events.pop_front(); }
     virtual bool Empty(){ return events.empty(); }
     virtual void Push(shared_ptr<Event> event){ events.push_back(event); }
-    virtual bool Blocked(){ return not block; }
-    
+    virtual bool Blocked(){ return block; }
     virtual void Press(const int & weight){}
     
     bool active = true;
@@ -68,7 +85,7 @@ namespace shta {
     EventQueueBasic(){}
     EventQueueBasic( const string & code ) : EventQueue( code ){}
     
-    void Tick(){
+    virtual void Tick(){
       block = false;
       events_limit = events_limit_th;
     }
@@ -78,7 +95,7 @@ namespace shta {
       if( events_limit < 0 ) block = true;
     }
     
-    void Push(shared_ptr<Event> event){ 
+    virtual void Push(shared_ptr<Event> event){ 
       if( not Empty() ){
         shared_ptr<Event> top_event = Get();
         if( top_event->priority < event->priority ){
@@ -129,6 +146,7 @@ namespace shta {
     
     void ProcessEvent( shared_ptr<Event> event ){
       const string & event_code = event->event_code;
+      PMSG_DEBUG("event_code =", event_code);
       // get handler, give him event data and call
       auto ret = handlers.equal_range(event_code);
       for (auto it=ret.first; it!=ret.second; ++it){
@@ -159,6 +177,34 @@ namespace shta {
         int events_processed = ProcessQueue( queue );
       }
     }
+    
+    bool AddEvent( shared_ptr<Event> event ){
+      const string & code = event->queue_code;
+      auto it = queues_map.find( code );
+      if( it == queues_map.end() ){ 
+        PMSG_WARNING(code, "no such queue");
+        return false;
+      }
+      it->second->Push( event );
+      return true;
+    }
+  };
+  
+  class EventBusFactory {
+  
+    bool AddEventQueue( shared_ptr<EventBus> bus, string name, string type){
+      shared_ptr<EventQueue> que;
+      if( type == "EventQueueBasic" ){
+          que = make_shared<EventQueueBasic>( name );
+      } else return false;
+      bus->AddQueue( que );
+      return true;
+    }
+    
+    shared_ptr<EventBus> BuildEventBus(  ){
+      
+    }
+    
   };
   
 }
