@@ -1,7 +1,7 @@
 // P.~Mandrik, 2023, https://github.com/pmandrik/ShtaEngine
 
-#ifndef GERDA_DIALOGS_HH 
-#define GERDA_DIALOGS_HH 1
+#ifndef SHTA_DIALOGS_HH 
+#define SHTA_DIALOGS_HH 1
 
 #include <map>
 #include <vector>
@@ -10,12 +10,13 @@
 #include "pmlib_other.hh"
 #include "pmlib_msg.hh"
 #include "pmlib_v2d.hh"
+#include "pmlib_math.hh"
 
 namespace ge {
 
   using namespace std;
 
-  // @@@Decoupled from ShtaEngine@@@
+  // @@@ Decoupled from ShtaEngine @@@
   // Dialog() machine
   //  - in general we are working with abstract "dialog Speech" = <DialogSpeech id="" data=... next_id="" mark=""> and <DialogAnswer id="" data="" next_id="" mark=""/>
   //  e.g dialog data is string, dialog answers and vector<string>
@@ -119,10 +120,10 @@ namespace ge {
     const string GetState() const { return state; }
     const vector<string> GetRecords() const { return records; }
     const string GetMarks() const { return marks; }
-    bool IsStateActive(){ return state == "active"; }
-    bool IsStateEnd(){ return state == "end"; }
-    bool IsStateNone(){ return state == "none"; }
-    bool IsStateReady(){ return state == "ready"; }
+    bool IsStateActive() const { return state == "active"; }
+    bool IsStateEnd() const { return state == "end"; }
+    bool IsStateNone() const { return state == "none"; }
+    bool IsStateReady() const { return state == "ready"; }
     
     void AddAnswer(string speech_id, string id, A data, string next_id="", string mark=""){
       auto de = speechs.find( speech_id );
