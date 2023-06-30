@@ -106,14 +106,52 @@ namespace shta {
       }
     }
   };
+  
+  struct ConfigSpec {
+    string type;
+    vector<string> attrs_req;
+    vector<string> attrs_extra;
+    vector<string> id_attrs;
+    vector<string> childs_types;
+  };
 
   class Config : public pm::PmMsg {
     /// Define interface to load config from filesystem.
-    map< string, vector<ConfigElement> > elements;
+    map<string, vector<ConfigElement>> elements;
+    map<string, ConfigSpecItem> specs;
+    // TODO check config quality
     
     public:
+    
     vector<ConfigElement> & GetElements(std::string type){
       return elements[ type ];
+    }
+
+    void AddElement( ConfigElement & element ){
+      PMSG_DEBUG("add element of type = ", element.type);
+      elements[ element.type ].push_back( element );
+    }
+
+    void RemoveElements( string type ){
+      PMSG_DEBUG("remove elements of type = ", type);
+      elements[ type ] = vector<ConfigItem>();
+    }
+    
+    void Merge( std::shared_ptr<Config> other ){
+      for(auto it = other->elements.begin(); it != other->elements.end(); ++it){
+        vector<ConfigElement> & v = elements[it->first];
+        v.insert(v.begin(), it->second.begin(), it->second.end());
+      }
+      CheckQuality();
+    }
+    
+    bool CheckQuality(){
+      elements;
+    }
+    
+    void AddSpec( ConfigSpec & element ){
+      PMSG_DEBUG("add spec for type = ", element.type);
+      specs[ element.type ].push_back( element );
     }
   };
   
